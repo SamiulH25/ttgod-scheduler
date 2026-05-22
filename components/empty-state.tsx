@@ -1,0 +1,55 @@
+"use client";
+
+import { motion } from "motion/react";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
+import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
+
+type EmptyStateProps = {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+  className?: string;
+};
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  className,
+}: EmptyStateProps) {
+  const reduced = useReducedMotion();
+
+  const iconEl = (
+    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-dashed border-[var(--ink-pencil)] bg-muted/30">
+      <Icon className="h-6 w-6 text-muted-foreground" />
+    </div>
+  );
+
+  return (
+    <div
+      className={cn(
+        "paper-sheet tape-both tape-tl tape-tr flex flex-col items-center px-6 py-12 text-center",
+        className,
+      )}
+      style={{ "--paper-tilt": "0.6deg" } as React.CSSProperties}
+    >
+      {reduced ? iconEl : (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35 }}
+        >
+          {iconEl}
+        </motion.div>
+      )}
+      <h3 className="font-display text-2xl font-bold">{title}</h3>
+      <p className="mt-2 max-w-sm font-display text-lg font-medium text-[var(--paper-ink-muted)]">
+        {description}
+      </p>
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+}
