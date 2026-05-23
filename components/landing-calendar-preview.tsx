@@ -10,7 +10,7 @@ export function LandingCalendarPreview() {
 
   const card = (
     <div
-      className="paper-sheet tape-both tape-tl tape-tr relative overflow-hidden p-5"
+      className="calendar-pad relative overflow-hidden p-5 pl-6"
       style={{ "--paper-tilt": "1.2deg" } as React.CSSProperties}
     >
       <div className="mb-3 flex items-center justify-between">

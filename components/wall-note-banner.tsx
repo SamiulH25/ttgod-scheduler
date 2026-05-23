@@ -59,7 +59,7 @@ export function WallNoteBanner() {
 
   if (notes.length === 0) {
     return (
-      <div className="paper-sheet tape-both tape-tl tape-tr rounded-lg border border-border/40 p-4">
+      <div className="tear-off-sheet tape-br rounded-lg border border-border/40 p-4">
         <div className="flex flex-wrap items-start gap-3">
           <Megaphone className="mt-0.5 size-5 text-primary" aria-hidden />
           <div className="min-w-0 flex-1 space-y-2">
@@ -96,7 +96,7 @@ export function WallNoteBanner() {
 
   const top = notes[0]!;
   return (
-    <div className="paper-sheet tape-both tape-tl tape-tr rounded-lg border border-primary/30 bg-primary/5 p-4">
+    <div className="tear-off-sheet tape-tl rounded-lg border border-primary/30 bg-primary/5 p-4">
       <div className="flex flex-wrap items-start gap-3">
         <Megaphone className="mt-0.5 size-5 text-primary" aria-hidden />
         <div className="min-w-0 flex-1">

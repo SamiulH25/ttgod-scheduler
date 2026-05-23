@@ -48,7 +48,7 @@ export function SquadRoster({
 }: SquadRosterProps) {
   return (
     <section
-      className="paper-calendar-roster availability-roster paper-sheet tape-both tape-tl tape-tr overflow-hidden"
+      className="paper-flat paper-calendar-roster availability-roster overflow-hidden"
       style={{ "--paper-tilt": "0.35deg" } as React.CSSProperties}
       aria-label="Squad on calendar this week"
     >

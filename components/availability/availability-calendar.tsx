@@ -7,6 +7,7 @@ import { MousePointer2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AgendaDayList } from "@/components/calendar/agenda-day-list";
 import { CompactDayStrip } from "@/components/calendar/compact-day-strip";
+import { CalendarPadFrame } from "@/components/calendar/calendar-pad-frame";
 import { WeekToolbar } from "@/components/calendar/week-toolbar";
 import { EmptyState } from "@/components/empty-state";
 import { AddAvailabilityDialog } from "@/components/availability/add-availability-dialog";
@@ -414,46 +415,46 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
     load();
   }
 
+  const toolbarHeader = (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <WeekToolbar
+        weekStart={weekStart}
+        onPrevWeek={() => {
+          setFlipDirection("left");
+          setWeekStart((w) => subWeeks(w, 1));
+        }}
+        onNextWeek={() => {
+          setFlipDirection("right");
+          setWeekStart((w) => addWeeks(w, 1));
+        }}
+        onToday={() => {
+          setWeekStart(getWeekStart(new Date()));
+          setMobileDay(new Date());
+        }}
+        onCopyLastWeek={() => void copyLastWeek()}
+        copyLastWeekBusy={copyWeekBusy}
+        viewPeriod={viewPeriod}
+        onViewPeriodChange={setViewPeriod}
+        weekRangeLabel={weekRangeLabel}
+        tearOff
+        className="week-toolbar-tear flex-1 min-w-[200px]"
+      />
+      <Button
+        type="button"
+        onClick={() => {
+          const now = new Date();
+          openAddDialog(now, new Date(now.getTime() + 2 * 60 * 60 * 1000));
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        Add block
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-      <div
-        className="paper-calendar-toolbar availability-toolbar paper-sheet tape-both tape-tl tape-tr sticky top-0 z-[var(--z-sticky)] flex flex-wrap items-center justify-between gap-3 px-3 py-3"
-        style={{ "--paper-tilt": "0deg" } as React.CSSProperties}
-      >
-        <WeekToolbar
-          weekStart={weekStart}
-          onPrevWeek={() => {
-            setFlipDirection("left");
-            setWeekStart((w) => subWeeks(w, 1));
-          }}
-          onNextWeek={() => {
-            setFlipDirection("right");
-            setWeekStart((w) => addWeeks(w, 1));
-          }}
-          onToday={() => {
-            setWeekStart(getWeekStart(new Date()));
-            setMobileDay(new Date());
-          }}
-          onCopyLastWeek={() => void copyLastWeek()}
-          copyLastWeekBusy={copyWeekBusy}
-          viewPeriod={viewPeriod}
-          onViewPeriodChange={setViewPeriod}
-          weekRangeLabel={weekRangeLabel}
-          tearOff
-        />
-        <Button
-          type="button"
-          onClick={() => {
-            const now = new Date();
-            openAddDialog(now, new Date(now.getTime() + 2 * 60 * 60 * 1000));
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Add block
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-sm border border-dashed border-[var(--ink-pencil)]/40 bg-[var(--paper-cream)]/60 px-3 py-2 text-sm text-[var(--paper-ink-muted)]">
+      <div className="paper-flat flex flex-wrap items-center gap-2 rounded-sm border border-dashed border-[var(--ink-pencil)]/40 px-3 py-2 font-sans text-sm text-[var(--paper-ink-muted)]">
         <MousePointer2 className="size-4 shrink-0 text-primary" aria-hidden />
         <span>
           <strong className="text-[var(--paper-ink)]">Drag</strong> to paint ·{" "}
@@ -487,17 +488,21 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
           <Skeleton className="h-[min(72vh,720px)] w-full rounded-xl" />
         </div>
       ) : (
-        <>
+        <CalendarPadFrame
+          weekStart={weekStart}
+          weekRangeLabel={weekRangeLabel}
+          header={toolbarHeader}
+        >
           {blocks.length === 0 && (
             <EmptyState
               iconName="calendar"
               title="Blank week"
               description="Drag on the grid below to post your first crayon block, or tap Add block."
-              className="max-w-lg"
+              className="mx-2 mb-3 max-w-lg border-0 bg-transparent shadow-none"
             />
           )}
 
-          <div className="space-y-4 lg:hidden">
+          <div className="space-y-4 px-1 pb-2 lg:hidden">
             <CompactDayStrip
               weekDays={weekDays}
               selectedDay={mobileDay}
@@ -505,7 +510,7 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
               blocks={blocks}
             />
             {mobileOverlapSlot && (
-              <div className="paper-sheet px-3 py-2">
+              <div className="paper-flat mx-1 px-3 py-2">
                 <p className="mb-1 font-display text-xs font-bold text-[var(--paper-ink-muted)]">
                   Squad free this overlap
                 </p>
@@ -531,7 +536,7 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
             />
           </div>
 
-          <div className="hidden lg:block">
+          <div className="hidden px-1 lg:block">
             <CalendarGrid
               weekDays={weekDays}
               weekKey={weekKey}
@@ -550,7 +555,7 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
               onOverlapBadgeClick={handleOverlapBadgeClick}
             />
           </div>
-        </>
+        </CalendarPadFrame>
       )}
 
       <AddAvailabilityDialog

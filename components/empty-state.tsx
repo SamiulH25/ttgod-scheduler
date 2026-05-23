@@ -44,7 +44,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "paper-sheet tape-both tape-tl tape-tr flex flex-col items-center px-6 py-12 text-center",
+        "paper-sheet tape-tr flex flex-col items-center px-6 py-12 text-center",
         className,
       )}
       style={{ "--paper-tilt": "0.6deg" } as React.CSSProperties}

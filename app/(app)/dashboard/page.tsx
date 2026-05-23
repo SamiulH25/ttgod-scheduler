@@ -78,7 +78,7 @@ export default async function DashboardPage() {
     !session!.user!.onboardingCompleted && myBlockCount === 0;
 
   return (
-    <PageContainer variant="wide">
+    <PageContainer variant="wide" className="hub-desk-surface rounded-lg">
       <div className="space-y-8">
         <PageHeader
           title={`Hello, ${session?.user?.name?.split(" ")[0] ?? "there"}`}

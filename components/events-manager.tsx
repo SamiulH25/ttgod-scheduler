@@ -46,7 +46,7 @@ import {
   findEventConflictPairs,
   formatConflictMessage,
 } from "@/lib/event-conflicts";
-import { stickyColorForId } from "@/lib/sticky-colors";
+import { attachmentForId, stickyColorForId } from "@/lib/sticky-colors";
 import { ImageZoomButton } from "@/components/image-lightbox";
 import { cn } from "@/lib/utils";
 import { SeasonBoardCollapsible } from "@/components/season-board-collapsible";
@@ -800,9 +800,19 @@ export function EventsManager({
             </StickyNote>
           </div>
         ) : (
-          <StaggerChildren className="relative z-10 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {events.map((ev) => {
+          <div className="relative z-10 space-y-8">
+            {(["interest", "scheduling", "scheduled"] as const).map((phaseKey) => {
+              const phaseEvents = events.filter((ev) => ev.phase === phaseKey);
+              if (phaseEvents.length === 0) return null;
+              return (
+                <div key={phaseKey}>
+                  <p className="bulletin-chalk-label mb-4">
+                    {PHASE_LABELS[phaseKey] ?? phaseKey}
+                  </p>
+                  <StaggerChildren className="bulletin-sticky-grid grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {phaseEvents.map((ev) => {
               const colors = stickyColorForId(ev.id);
+              const attach = attachmentForId(ev.id);
               const mine = ev.participants.find(
                 (p) => p.userId === currentUserId,
               );
@@ -840,6 +850,9 @@ export function EventsManager({
                     tiltId={ev.id}
                     backgroundColor={colors.bg}
                     inkColor={colors.ink}
+                    attachment={attach.kind}
+                    tapeCorner={attach.tapeCorner}
+                    bulletin
                     interactive
                     highlight={lastCreatedId === ev.id}
                     className={cn(
@@ -1105,7 +1118,11 @@ export function EventsManager({
                 </StaggerItem>
               );
             })}
-          </StaggerChildren>
+                  </StaggerChildren>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {showQuickTip && (

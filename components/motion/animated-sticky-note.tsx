@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { StickyNote } from "@/components/paper/sticky-note";
+import type { StickyTapeCorner } from "@/lib/sticky-colors";
 import { springBouncy } from "@/lib/motion-presets";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,9 @@ type AnimatedStickyNoteProps = {
   inkColor?: string;
   interactive?: boolean;
   onClick?: () => void;
+  attachment?: "pushpin" | "tapeCorner";
+  tapeCorner?: StickyTapeCorner;
+  bulletin?: boolean;
   /** Pin-drop entrance */
   enter?: boolean;
   /** Highlight pulse after create */
@@ -30,6 +34,9 @@ export function AnimatedStickyNote({
   inkColor,
   interactive,
   onClick,
+  attachment,
+  tapeCorner,
+  bulletin = true,
   enter = true,
   highlight = false,
   layout = true,
@@ -43,6 +50,9 @@ export function AnimatedStickyNote({
       inkColor={inkColor}
       interactive={interactive}
       onClick={onClick}
+      attachment={attachment}
+      tapeCorner={tapeCorner}
+      bulletin={bulletin}
       className={cn(highlight && "animate-sticky-highlight", className)}
     >
       {children}
