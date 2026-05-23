@@ -55,7 +55,7 @@ export default async function HomePage({
 
     <div className="relative min-h-screen bg-plaster-wall">
 
-      <header className="tear-off-sheet border-b-2 border-dashed border-border">
+      <header className="paper-sheet tape-both tape-tl tape-tr border-b-2 border-dashed border-border">
 
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
 

@@ -16,25 +16,6 @@ export function stickyColorForId(id: string): (typeof STICKY_NOTE_COLORS)[number
   return STICKY_NOTE_COLORS[h % STICKY_NOTE_COLORS.length]!;
 }
 
-export type StickyAttachment = "pushpin" | "tapeCorner";
-
-const TAPE_CORNERS = ["tl", "tr", "br", "bl"] as const;
-export type StickyTapeCorner = (typeof TAPE_CORNERS)[number];
-
-export function attachmentForId(id: string): {
-  kind: StickyAttachment;
-  tapeCorner?: StickyTapeCorner;
-} {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) {
-    h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  }
-  if (h % 3 === 0) {
-    return { kind: "tapeCorner", tapeCorner: TAPE_CORNERS[h % TAPE_CORNERS.length]! };
-  }
-  return { kind: "pushpin" };
-}
-
 /** Tape accents use theme tokens from `globals.css` (`--tape-beige`, `--tape-shadow`). */
 export const STICKY_TAPE_CSS = {
   bg: "var(--tape-beige)",

@@ -24,9 +24,7 @@ Discord-signed-in **squad calendar**: post availability â†’ discover overlaps â†
 
 ## UI system
 
-See [VISUAL.md](./VISUAL.md) for the surface matrix (calendar pad, tear-off, sheet, sticky, flat).
-
-- **Tilt allowed:** bulletin stickies, hub tear-off overlap, landing hero, empty states.
+- **Tilt allowed:** bulletin stickies, bento cards, landing, empty states.
 - **Tilt forbidden:** dialogs, selects, dropdown lists, tables, form fields (use `.paper-flat`).
 - **Typography:** `font-display` for headings; `font-sans` inside flat overlays and inputs.
 

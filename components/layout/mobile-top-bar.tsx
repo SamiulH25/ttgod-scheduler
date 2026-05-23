@@ -45,7 +45,7 @@ export function MobileTopBar({
   return (
     <>
       <header
-        className="paper-flat sticky top-0 z-[var(--z-sticky)] flex h-14 items-center justify-between border-b border-border/60 px-4 lg:hidden"
+        className="paper-sheet tape-both tape-tl tape-tr sticky top-0 z-[var(--z-sticky)] flex h-14 items-center justify-between px-4 lg:hidden"
         style={{ "--paper-tilt": "0deg" } as React.CSSProperties}
       >
         <Link href="/dashboard" onClick={() => setOpen(false)}>

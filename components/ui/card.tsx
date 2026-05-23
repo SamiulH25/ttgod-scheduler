@@ -9,7 +9,7 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, interactive, tiltId, tape = false, style, ...props }, ref) => {
+  ({ className, interactive, tiltId, tape = true, style, ...props }, ref) => {
     const tilt = tiltId ? tiltFromId(tiltId) : 0;
     return (
       <div
