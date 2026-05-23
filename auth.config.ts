@@ -16,6 +16,8 @@ export const authConfig = {
         session.user.timezone = (token.timezone as string) ?? "UTC";
         session.user.theme = (token.theme as typeof session.user.theme) ?? "light";
         session.user.font = (token.font as typeof session.user.font) ?? "caveat";
+        session.user.onboardingCompleted =
+          (token.onboardingCompleted as boolean) ?? false;
       }
       return session;
     },

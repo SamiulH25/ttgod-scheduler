@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Caveat, Comic_Neue, Kalam, Patrick_Hand } from "next/font/google";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { FontSync } from "@/components/font-sync";
 import { Providers } from "@/components/providers";
 import { SvgFilters } from "@/components/svg-filters";
@@ -9,7 +9,6 @@ import { ThemeSync } from "@/components/theme-sync";
 import { resolveThemeAttribute } from "@/lib/apply-theme";
 import type { AppFont } from "@/lib/fonts";
 import type { AppTheme } from "@/lib/themes";
-import { prisma } from "@/lib/db";
 import "./globals.css";
 
 const caveat = Caveat({
@@ -48,18 +47,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-  let theme: AppTheme = "light";
-  let font: AppFont = "caveat";
-
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { theme: true, font: true },
-    });
-    if (user?.theme) theme = user.theme as AppTheme;
-    if (user?.font) font = user.font as AppFont;
-  }
+  const session = await getSession();
+  const theme = (session?.user?.theme ?? "light") as AppTheme;
+  const font = (session?.user?.font ?? "caveat") as AppFont;
 
   const htmlTheme = resolveThemeAttribute(theme);
 

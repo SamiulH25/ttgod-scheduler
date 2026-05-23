@@ -15,3 +15,9 @@ export function stickyColorForId(id: string): (typeof STICKY_NOTE_COLORS)[number
   }
   return STICKY_NOTE_COLORS[h % STICKY_NOTE_COLORS.length]!;
 }
+
+/** Tape accents use theme tokens from `globals.css` (`--tape-beige`, `--tape-shadow`). */
+export const STICKY_TAPE_CSS = {
+  bg: "var(--tape-beige)",
+  shadow: "var(--tape-shadow)",
+} as const;

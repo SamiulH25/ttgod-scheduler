@@ -7,7 +7,3 @@ export function tiltFromId(id: string, maxDeg = 2.2): number {
   const t = (h % 1000) / 1000;
   return (t - 0.5) * 2 * maxDeg;
 }
-
-export function paperTiltStyle(id: string, maxDeg?: number): React.CSSProperties {
-  return { "--paper-tilt": `${tiltFromId(id, maxDeg)}deg` } as React.CSSProperties;
-}

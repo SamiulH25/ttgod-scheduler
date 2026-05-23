@@ -3,13 +3,17 @@ import Credentials from "next-auth/providers/credentials";
 import Discord from "next-auth/providers/discord";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { authConfig } from "@/auth.config";
+import { getDiscordOAuthCredentials } from "@/lib/discord-oauth";
+import {
+  syncDiscordProfileToUser,
+  type DiscordProfileSlice,
+} from "@/lib/sync-discord-profile";
 import { prisma } from "@/lib/db";
+import { ensureDefaultGuildForUser } from "@/lib/guild";
 
-const devAuthEnabled =
-  process.env.NODE_ENV === "development" || process.env.DEV_AUTH_ENABLED === "true";
+const discordOAuth = getDiscordOAuthCredentials();
 
-const discordConfigured =
-  Boolean(process.env.AUTH_DISCORD_ID) && Boolean(process.env.AUTH_DISCORD_SECRET);
+const devAuthEnabled = process.env.NODE_ENV === "development";
 
 async function loadUserIntoToken(
   token: Record<string, unknown> & { sub?: string },
@@ -25,6 +29,7 @@ async function loadUserIntoToken(
     token.timezone = dbUser.timezone;
     token.theme = dbUser.theme;
     token.font = dbUser.font;
+    token.onboardingCompleted = dbUser.onboardingCompleted;
   }
 
   return token;
@@ -36,6 +41,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   adapter: PrismaAdapter(prisma),
   providers: [
+    ...(discordOAuth
+      ? [
+          Discord({
+            clientId: discordOAuth.clientId,
+            clientSecret: discordOAuth.clientSecret,
+            // Link Discord OAuth when a dev/demo user already has the same email.
+            allowDangerousEmailAccountLinking: devAuthEnabled,
+          }),
+        ]
+      : []),
     ...(devAuthEnabled
       ? [
           Credentials({
@@ -60,16 +75,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 update: { name },
               });
 
+              await ensureDefaultGuildForUser(user.id);
+
               return user;
             },
-          }),
-        ]
-      : []),
-    ...(discordConfigured
-      ? [
-          Discord({
-            clientId: process.env.AUTH_DISCORD_ID!,
-            clientSecret: process.env.AUTH_DISCORD_SECRET!,
           }),
         ]
       : []),
@@ -81,27 +90,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = user.id;
       }
 
-      if (account?.provider === "discord" && profile?.id && token.sub) {
-        const discordId = profile.id as string;
-        await prisma.user.update({
-          where: { id: token.sub },
-          data: {
-            discordId,
-            name:
-              user?.name ??
-              (profile as { username?: string }).username ??
-              undefined,
-            image: user?.image ?? undefined,
-          },
+      if (account?.provider === "discord" && profile?.id) {
+        const discordId = String(profile.id);
+        const syncedUserId = await syncDiscordProfileToUser({
+          discordId,
+          profile: profile as DiscordProfileSlice,
+          userId: token.sub ?? user?.id,
+          providerAccountId: account.providerAccountId,
+          fallbackName: user?.name,
+          fallbackImage: user?.image,
         });
+        if (syncedUserId) {
+          token.sub = syncedUserId;
+        }
         token.discordId = discordId;
       }
 
-      if (user?.id || trigger === "update") {
+      if (token.sub && (user?.id || trigger === "update" || account?.provider === "discord")) {
         await loadUserIntoToken(token);
       }
 
       return token;
+    },
+    async signIn() {
+      return true;
+    },
+  },
+  events: {
+    async signIn({ user, account, profile }) {
+      if (user?.id) {
+        await ensureDefaultGuildForUser(user.id);
+      }
+      if (account?.provider !== "discord" || !profile || !("id" in profile)) return;
+      await syncDiscordProfileToUser({
+        discordId: String(profile.id),
+        profile: profile as DiscordProfileSlice,
+        userId: user.id,
+        providerAccountId: account.providerAccountId,
+        fallbackName: user.name,
+        fallbackImage: user.image,
+      });
     },
   },
 });

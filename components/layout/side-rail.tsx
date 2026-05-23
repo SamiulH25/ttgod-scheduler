@@ -10,7 +10,11 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { LogoMark } from "@/components/logo-mark";
+import { GuildSwitcher } from "@/components/guild-switcher";
+import { NavIcon } from "@/components/motion/nav-icon";
 import { NavIndicator } from "@/components/motion/nav-indicator";
+import { PopInPulse } from "@/components/motion/pop-in";
+import { Pressable } from "@/components/motion/pressable";
 import { UserAvatar } from "@/components/user-avatar";
 import { tiltFromId } from "@/lib/paper-tilt";
 import { cn } from "@/lib/utils";
@@ -18,7 +22,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/dashboard", label: "Hub", icon: LayoutDashboard },
   { href: "/availability", label: "Calendar", icon: Calendar },
-  { href: "/events", label: "Events", icon: CalendarDays, badgeKey: "events" as const },
+  { href: "/events", label: "Campaigns", icon: CalendarDays, badgeKey: "events" as const },
   { href: "/squad", label: "Team", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -42,9 +46,11 @@ export function SideRail({
       aria-label="Main navigation"
     >
       <div className="flex h-16 items-center border-b border-dashed border-border px-4 text-foreground">
-        <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-          <LogoMark />
-        </Link>
+        <Pressable hoverWiggle className="inline-block">
+          <Link href="/dashboard" className="block transition-opacity hover:opacity-90">
+            <LogoMark />
+          </Link>
+        </Pressable>
       </div>
 
       <nav className="flex flex-1 flex-col gap-2 p-3">
@@ -71,29 +77,35 @@ export function SideRail({
               }
             >
               {active && <NavIndicator />}
-              <Icon
-                className={cn(
-                  "relative z-10 h-5 w-5 shrink-0 stroke-[2.25px]",
-                  active
-                    ? "text-[var(--paper-ink)]"
-                    : "text-[var(--paper-ink-muted)]",
-                )}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <NavIcon active={active}>
+                <Icon
+                  className={cn(
+                    "h-5 w-5 stroke-[2.25px]",
+                    active
+                      ? "text-[var(--paper-ink)]"
+                      : "text-[var(--paper-ink-muted)]",
+                  )}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </NavIcon>
               <span className="relative z-10 truncate">{link.label}</span>
               {showBadge && (
-                <span
-                  className="relative z-10 ml-auto font-display text-sm font-bold text-secondary"
-                  aria-label={`${pendingInvites} pending`}
-                >
-                  {pendingInvites}
-                </span>
+                <PopInPulse className="relative z-10 ml-auto">
+                  <span
+                    className="font-display text-sm font-bold text-secondary"
+                    aria-label={`${pendingInvites} pending`}
+                  >
+                    {pendingInvites}
+                  </span>
+                </PopInPulse>
               )}
             </Link>
           );
         })}
       </nav>
+
+      <GuildSwitcher />
 
       <Link
         href="/settings"

@@ -1,6 +1,8 @@
 "use client";
 
+import { motion } from "motion/react";
 import { NavIndicator } from "@/components/motion/nav-indicator";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { FONT_OPTIONS, fontFamilyFor, type AppFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +12,9 @@ type FontPickerProps = {
 };
 
 export function FontPicker({ value, onChange }: FontPickerProps) {
+  const reduced = useReducedMotion();
+  const Card = reduced ? "button" : motion.button;
+
   return (
     <div className="space-y-3">
       <h3 className="prose-label">Handwriting font</h3>
@@ -17,10 +22,16 @@ export function FontPicker({ value, onChange }: FontPickerProps) {
         {FONT_OPTIONS.map((f) => {
           const selected = value === f.id;
           return (
-            <button
+            <Card
               key={f.id}
               type="button"
               onClick={() => onChange(f.id)}
+              {...(!reduced
+                ? {
+                    whileHover: { scale: 1.03, rotate: 1 },
+                    whileTap: { scale: 0.97 },
+                  }
+                : {})}
               className="paper-sheet relative p-3 text-left"
               style={{ "--paper-tilt": "-0.5deg" } as React.CSSProperties}
             >
@@ -39,7 +50,7 @@ export function FontPicker({ value, onChange }: FontPickerProps) {
               <p className="relative z-10 text-sm text-[var(--paper-ink-muted)]">
                 {f.description}
               </p>
-            </button>
+            </Card>
           );
         })}
       </div>

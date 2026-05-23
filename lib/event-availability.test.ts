@@ -37,10 +37,29 @@ describe("findUsersFreeDuring", () => {
     expect(result).toHaveLength(2);
     expect(mockFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
+        where: expect.objectContaining({
           start: { lt: end },
           end: { gt: start },
-        },
+          status: "free",
+          user: {
+            OR: [{ awayUntil: null }, { awayUntil: { lte: expect.any(Date) } }],
+          },
+        }),
+      }),
+    );
+  });
+
+  it("optionally includes tentative blocks", async () => {
+    mockFindMany.mockResolvedValue([] as never);
+    await findUsersFreeDuring(new Date(), new Date(), { includeTentative: true });
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: { in: ["free", "tentative"] },
+          user: {
+            OR: [{ awayUntil: null }, { awayUntil: { lte: expect.any(Date) } }],
+          },
+        }),
       }),
     );
   });

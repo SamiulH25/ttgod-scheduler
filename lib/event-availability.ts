@@ -7,15 +7,29 @@ export type NotifyTarget = {
   image: string | null;
 };
 
+export type FindUsersFreeDuringOptions = {
+  /** When true, `tentative` blocks count as available. Default false (only `free`). */
+  includeTentative?: boolean;
+};
+
 /** Users with availability overlapping the given window. */
 export async function findUsersFreeDuring(
   start: Date,
   end: Date,
+  options?: FindUsersFreeDuringOptions,
 ): Promise<NotifyTarget[]> {
+  const statusFilter =
+    options?.includeTentative === true ? { in: ["free", "tentative"] } : "free";
+
+  const now = new Date();
   const blocks = await prisma.availabilityBlock.findMany({
     where: {
       start: { lt: end },
       end: { gt: start },
+      status: statusFilter,
+      user: {
+        OR: [{ awayUntil: null }, { awayUntil: { lte: now } }],
+      },
     },
     include: {
       user: {
@@ -41,7 +55,6 @@ export async function findUsersFreeDuring(
   );
 }
 
-/** Discord IDs only — for bot ping documentation consumers. */
 export function notifyTargetsForBot(targets: NotifyTarget[]): NotifyTarget[] {
   return targets.filter((t) => t.discordId != null);
 }

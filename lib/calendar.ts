@@ -7,10 +7,14 @@ import {
   startOfWeek,
 } from "date-fns";
 
+/** @deprecated Use getCalendarViewport + getViewportHours instead */
 export const CALENDAR_START_HOUR = 6;
+/** @deprecated Use getCalendarViewport + getViewportHours instead */
 export const CALENDAR_END_HOUR = 23;
+/** @deprecated Use CALENDAR_PX_PER_HOUR and viewport height instead */
 export const HOUR_HEIGHT_PX = 48;
 
+/** @deprecated Use getViewportHours(getCalendarViewport(...)) instead */
 export const CALENDAR_HOURS = Array.from(
   { length: CALENDAR_END_HOUR - CALENDAR_START_HOUR + 1 },
   (_, i) => CALENDAR_START_HOUR + i,
@@ -33,9 +37,18 @@ export type CalendarBlock = {
   start: string;
   end: string;
   label: string | null;
+  /** free | tentative | busy — only `free` counts toward overlap bands */
+  status?: string | null;
+  lfgNote?: string | null;
+  recurrenceRule?: string | null;
   userId: string;
   user: { id: string; name: string | null; image: string | null };
 };
+
+export function blockCountsAsFreeForOverlap(block: CalendarBlock): boolean {
+  const s = block.status ?? "free";
+  return s === "free";
+}
 
 export function toCalendarBlocks(
   rows: Array<{
@@ -43,6 +56,9 @@ export function toCalendarBlocks(
     start: Date;
     end: Date;
     label: string | null;
+    status?: string | null;
+    lfgNote?: string | null;
+    recurrenceRule?: string | null;
     userId: string;
     user: { id: string; name: string | null; image: string | null };
   }>,
@@ -52,6 +68,9 @@ export function toCalendarBlocks(
     start: b.start.toISOString(),
     end: b.end.toISOString(),
     label: b.label,
+    status: b.status ?? undefined,
+    lfgNote: b.lfgNote ?? undefined,
+    recurrenceRule: b.recurrenceRule ?? undefined,
     userId: b.userId,
     user: b.user,
   }));
@@ -124,11 +143,12 @@ export function buildDayLayout(day: Date, blocks: CalendarBlock[]): DayLayout {
     const active = segments.filter((s) => s.startMin < t1 && s.endMin > t0);
     if (active.length === 0) continue;
 
-    const userIds = [...new Set(active.map((s) => s.block.userId))];
+    const freeActive = active.filter((s) => blockCountsAsFreeForOverlap(s.block));
+    const userIds = [...new Set(freeActive.map((s) => s.block.userId))];
 
     if (userIds.length >= 2) {
       const blockMap = new Map<string, CalendarBlock>();
-      for (const s of active) blockMap.set(s.block.id, s.block);
+      for (const s of freeActive) blockMap.set(s.block.id, s.block);
       overlapSlices.push({
         startMin: t0,
         endMin: t1,
@@ -136,7 +156,11 @@ export function buildDayLayout(day: Date, blocks: CalendarBlock[]): DayLayout {
         blocks: [...blockMap.values()],
       });
     } else {
-      soloSlices.push({ block: active[0]!.block, startMin: t0, endMin: t1 });
+      const soloBlock =
+        freeActive.length === 1
+          ? freeActive[0]!.block
+          : active[0]!.block;
+      soloSlices.push({ block: soloBlock, startMin: t0, endMin: t1 });
     }
   }
 

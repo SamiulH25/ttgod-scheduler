@@ -13,7 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { LogoMark } from "@/components/logo-mark";
+import { NavIcon } from "@/components/motion/nav-icon";
 import { NavIndicator } from "@/components/motion/nav-indicator";
+import { PopInPulse } from "@/components/motion/pop-in";
 import { UserAvatar } from "@/components/user-avatar";
 import { tiltFromId } from "@/lib/paper-tilt";
 import { cn } from "@/lib/utils";
@@ -21,7 +23,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/dashboard", label: "Hub", icon: LayoutDashboard },
   { href: "/availability", label: "Calendar", icon: Calendar },
-  { href: "/events", label: "Events", icon: CalendarDays, badgeKey: "events" as const },
+  { href: "/events", label: "Campaigns", icon: CalendarDays, badgeKey: "events" as const },
   { href: "/squad", label: "Team", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -51,9 +53,11 @@ export function MobileTopBar({
         </Link>
         <div className="flex items-center gap-2">
           {pendingInvites > 0 && (
-            <span className="font-display text-sm font-bold text-primary" aria-hidden>
-              {pendingInvites}
-            </span>
+            <PopInPulse>
+              <span className="font-display text-sm font-bold text-primary" aria-hidden>
+                {pendingInvites}
+              </span>
+            </PopInPulse>
           )}
           <Link href="/settings">
             <UserAvatar name={userName} image={userImage} size="sm" />
@@ -102,16 +106,18 @@ export function MobileTopBar({
                   }
                 >
                   {active && <NavIndicator />}
-                  <Icon
-                    className={cn(
-                      "relative z-10 h-5 w-5 stroke-[2.25px]",
-                      active
-                        ? "text-[var(--paper-ink)]"
-                        : "text-[var(--paper-ink-muted)]",
-                    )}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <NavIcon active={active}>
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 stroke-[2.25px]",
+                        active
+                          ? "text-[var(--paper-ink)]"
+                          : "text-[var(--paper-ink-muted)]",
+                      )}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </NavIcon>
                   <span className="relative z-10">{link.label}</span>
                 </Link>
               );

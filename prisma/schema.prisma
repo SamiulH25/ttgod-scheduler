@@ -8,66 +8,359 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  discordId     String?   @unique
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  timezone      String    @default("UTC")
+  id                   String    @id @default(cuid())
+  discordId            String?   @unique
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime?
+  image                String?
+  timezone             String    @default("UTC")
   theme                String    @default("light")
   font                 String    @default("caveat")
   onboardingCompleted  Boolean   @default(false)
+  calendarToken        String?   @unique
+  notificationPrefs    String?
+  lastGuildId          String?
+  awayUntil            DateTime?
+  quietHours           String?
+  energyPreference     String?
   createdAt            DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt            DateTime  @updatedAt
 
-  availabilityBlocks AvailabilityBlock[]
-  createdEvents      Event[]             @relation("EventCreator")
-  participations     EventParticipant[]
+  availabilityBlocks  AvailabilityBlock[]
+  createdEvents       Event[]               @relation("EventCreator")
+  participations      EventParticipant[]
+  timeProposals       EventTimeProposal[]   @relation("ProposalCreator")
+  proposalVotes       EventProposalVote[]
+  optionVotes         EventOptionVote[]
+  uploadedEventImages EventImage[]
+  eventExpenses       EventExpense[]        @relation("ExpenseCreator")
+  paidExpenses        EventExpense[]        @relation("ExpensePayer")
+  attendances         EventAttendance[]
+  activities          Activity[]            @relation("ActivityActor")
+  campaignTemplates   CampaignTemplate[]
+  squadGroupMembers   SquadGroupMember[]
+  guildMembers        GuildMember[]
+  softHolds           SoftHold[]
+  wallNotes           WallNote[]
 
   accounts Account[]
   sessions Session[]
 }
 
+model Guild {
+  id             String   @id @default(cuid())
+  discordGuildId String?  @unique
+  name           String
+  joinCode       String?  @unique
+  createdAt      DateTime @default(now())
+
+  members          GuildMember[]
+  events           Event[]
+  softHolds        SoftHold[]
+  seasons          Season[]
+  wallNotes        WallNote[]
+  publicShareTokens PublicShareToken[]
+}
+
+model GuildMember {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+}
+
+model SoftHold {
+  id               String    @id @default(cuid())
+  guildId          String
+  createdById      String
+  title            String
+  start            DateTime
+  end              DateTime
+  expiresAt        DateTime
+  convertedEventId String?   @unique
+  createdAt        DateTime  @default(now())
+
+  guild     Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([guildId, expiresAt])
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  guildId   String
+  name      String
+  color     String   @default("#c4a574")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  guild  Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  events Event[]
+
+  @@index([guildId, sortOrder])
+}
+
+model WallNote {
+  id          String   @id @default(cuid())
+  guildId     String
+  createdById String
+  body        String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  guild     Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([guildId, expiresAt])
+}
+
+model PublicShareToken {
+  id        String    @id @default(cuid())
+  type      String
+  token     String    @unique
+  guildId   String?
+  eventId   String?
+  createdById String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  guild Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([type, token])
+}
+
+model SquadGroup {
+  id          String   @id @default(cuid())
+  name        String
+  createdById String
+  createdAt   DateTime @default(now())
+
+  members SquadGroupMember[]
+}
+
+model SquadGroupMember {
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+
+  group SquadGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  type       String
+  actorId    String?
+  entityType String
+  entityId   String
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
 model AvailabilityBlock {
-  id              String   @id @default(cuid())
-  userId          String
-  start           DateTime
-  end             DateTime
-  label           String?
-  recurrenceRule  String?
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  start          DateTime
+  end            DateTime
+  label          String?
+  status         String   @default("free")
+  lfgNote        String?
+  recurrenceRule String?
+  seriesId       String?
+  createdAt      DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, start])
+  @@index([seriesId])
+}
+
+model CampaignTemplate {
+  id               String   @id @default(cuid())
+  createdById      String
+  title            String
+  description      String?
+  durationMinutes  Int      @default(120)
+  visibility       String   @default("private")
+  maxParticipants  Int?
+  costSplitEvenly  Boolean  @default(false)
+  defaultPhase     String   @default("interest")
+  createdAt        DateTime @default(now())
+
+  createdBy User    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  events    Event[]
 }
 
 model Event {
+  id                 String    @id @default(cuid())
+  title              String
+  description        String?
+  phase              String    @default("interest")
+  start              DateTime?
+  end                DateTime?
+  createdById        String
+  guildId            String?
+  seasonId           String?
+  templateId         String?
+  visibility         String    @default("private")
+  maxParticipants    Int?
+  costCurrency       String    @default("USD")
+  costSplitEvenly    Boolean   @default(false)
+  schedulingClosedAt DateTime?
+  archivedAt         DateTime?
+  recapNote          String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  createdBy    User              @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  guild        Guild?            @relation(fields: [guildId], references: [id], onDelete: SetNull)
+  season       Season?           @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  template     CampaignTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  participants EventParticipant[]
+  planItems    EventPlanItem[]
+  proposals    EventTimeProposal[]
+  proposalVotes EventProposalVote[]
+  options      EventOption[]
+  roles        EventRole[]
+  attendances  EventAttendance[]
+  images       EventImage[]
+  expenses     EventExpense[]
+
+  @@index([createdById, start])
+  @@index([phase])
+  @@index([archivedAt])
+  @@index([guildId])
+  @@index([seasonId])
+}
+
+model EventOption {
+  id        String   @id @default(cuid())
+  eventId   String
+  label     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  event Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes EventOptionVote[]
+
+  @@index([eventId, sortOrder])
+}
+
+model EventOptionVote {
+  id       String   @id @default(cuid())
+  eventId  String
+  optionId String
+  userId   String
+  createdAt DateTime @default(now())
+
+  option EventOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model EventRole {
+  id        String @id @default(cuid())
+  eventId   String
+  name      String
+  maxCount  Int?
+  sortOrder Int    @default(0)
+
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participants EventParticipant[]
+
+  @@index([eventId])
+}
+
+model EventTimeProposal {
   id          String   @id @default(cuid())
-  title       String
-  description String?
+  eventId     String
   start       DateTime
   end         DateTime
   createdById String
-  visibility  String   @default("private")
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  createdBy    User               @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  participants EventParticipant[]
-  planItems    EventPlanItem[]
+  event     Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdBy User                @relation("ProposalCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  votes     EventProposalVote[]
 
-  @@index([createdById, start])
+  @@index([eventId])
+}
+
+model EventProposalVote {
+  id         String   @id @default(cuid())
+  eventId    String
+  proposalId String
+  userId     String
+  rank       Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  event    Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  proposal EventTimeProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId, proposalId])
+}
+
+model EventExpense {
+  id          String   @id @default(cuid())
+  eventId     String
+  label       String
+  amountCents Int
+  sortOrder   Int      @default(0)
+  paidById    String?
+  splits      String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  paidBy    User? @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: SetNull)
+  createdBy User? @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([eventId, sortOrder])
+}
+
+model EventImage {
+  id           String   @id @default(cuid())
+  eventId      String
+  storageKey   String
+  url          String
+  mimeType     String
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  event      Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedBy User  @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
 
 model EventPlanItem {
   id        String    @id @default(cuid())
   eventId   String
+  kind      String    @default("step")
   sortOrder Int       @default(0)
   startsAt  DateTime?
   title     String
   notes     String?
+  url       String?
+  location  String?
+  checklist String?
   createdAt DateTime  @default(now())
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -76,10 +369,31 @@ model EventPlanItem {
 }
 
 model EventParticipant {
-  id      String @id @default(cuid())
-  eventId String
-  userId  String
-  status  String @default("pending")
+  id               String  @id @default(cuid())
+  eventId          String
+  userId           String?
+  roleId           String?
+  guestEmail       String?
+  displayName      String?
+  status           String  @default("pending")
+  waitlistPosition Int?
+  isBackup         Boolean @default(false)
+
+  event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role  EventRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, userId])
+  @@index([eventId, status])
+}
+
+model EventAttendance {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  status    String   @default("unknown")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,7 +401,6 @@ model EventParticipant {
   @@unique([eventId, userId])
 }
 
-// Auth.js adapter models
 model Account {
   id                String  @id @default(cuid())
   userId            String

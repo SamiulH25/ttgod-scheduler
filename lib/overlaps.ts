@@ -1,6 +1,6 @@
 import { addDays, startOfDay } from "date-fns";
 import type { CalendarBlock } from "@/lib/calendar";
-import { getBlocksForDay } from "@/lib/calendar";
+import { blockCountsAsFreeForOverlap, getBlocksForDay } from "@/lib/calendar";
 
 export type SquadOverlap = {
   start: string;
@@ -29,8 +29,10 @@ export function findSquadOverlaps(
 ): SquadOverlap[] {
   const overlaps: SquadOverlap[] = [];
 
+  const freeBlocks = blocks.filter(blockCountsAsFreeForOverlap);
+
   for (const day of daysInRange(from, to)) {
-    const segments = getBlocksForDay(day, blocks);
+    const segments = getBlocksForDay(day, freeBlocks);
     if (segments.length < 2) continue;
 
     const points: Array<{ t: number; delta: number }> = [];

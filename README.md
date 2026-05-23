@@ -8,7 +8,7 @@ A scheduling web app for sharing free time, creating events, and integrating wit
 
 - **Next.js 15** (App Router) + TypeScript
 - **Auth.js** (NextAuth v5) with Discord OAuth
-- **Prisma** + SQLite (prototype; switch to PostgreSQL for production)
+- **Prisma** + SQLite (local); switch `provider` + `DATABASE_URL` to PostgreSQL for production
 - **Tailwind CSS** + shadcn-style UI components
 - **next-themes** for light / dark / system themes
 
@@ -60,9 +60,21 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Demo sign-in (no Discord required)
+### Demo sign-in (local development only)
 
-In development, or when `DEV_AUTH_ENABLED=true`, the home page shows **Go to dashboard** with a name field. This creates a local demo user (`dev-*` Discord ID) so you can use the app before Discord OAuth is configured.
+When `NODE_ENV=development`, the home page shows a **Local demo only** form. Production expects **Sign in with Discord** only. Profile name and avatar refresh from Discord on each login.
+
+---
+
+## Campaigns (events)
+
+Campaigns move through three phases:
+
+1. **Interest** — squad votes yes/no; optional capacity limit.
+2. **Scheduling** — host adds time slots; members vote; host finalizes the winner.
+3. **Scheduled** — pinned event with calendar time, accept/decline invites, itinerary.
+
+Optional **cost** with **split evenly** shows per-person share on stickies. **Photos** can be attached anytime from the campaign detail page (`/events/[id]`). Images are stored under `data/uploads/events/` (gitignored).
 
 ---
 
@@ -242,4 +254,5 @@ Used by the web UI; requires an active Discord login session.
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
 | `npm run db:migrate` | Apply migrations |
-| `npm run db:studio` | Prisma Studio GUI |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright smoke (`e2e/smoke.spec.ts`); first run may need `npx playwright install` |

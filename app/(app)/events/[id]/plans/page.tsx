@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { EventItinerary } from "@/components/event-itinerary";
 import { getEventForUser } from "@/lib/event-access";
 import { notFound } from "next/navigation";
@@ -6,11 +6,11 @@ import { notFound } from "next/navigation";
 type Props = { params: Promise<{ id: string }> };
 
 export default async function EventPlansPage({ params }: Props) {
-  const session = await auth();
+  const session = await getSession();
   const { id } = await params;
   const event = await getEventForUser(id, session!.user!.id);
 
-  if (!event) {
+  if (!event || event.phase !== "scheduled" || !event.start || !event.end) {
     notFound();
   }
 

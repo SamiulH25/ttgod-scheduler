@@ -22,7 +22,10 @@ export async function GET(_request: NextRequest, { params }: Params) {
       return jsonError("Event not found", "NOT_FOUND", 404);
     }
 
-    const notifyTargets = await findUsersFreeDuring(event.start, event.end);
+    let notifyTargets: Awaited<ReturnType<typeof findUsersFreeDuring>> = [];
+    if (event.start && event.end) {
+      notifyTargets = await findUsersFreeDuring(event.start, event.end);
+    }
 
     return NextResponse.json({ event, notifyTargets });
   } catch (err) {

@@ -3,15 +3,24 @@
 import { motion } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
-import type { LucideIcon } from "lucide-react";
+import { Calendar, LogIn, Users, type LucideIcon } from "lucide-react";
 
-type Step = {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-};
+const LANDING_STEPS: { icon: LucideIcon; title: string; desc: string }[] = [
+  { icon: LogIn, title: "Sign in", desc: "Link Discord so the bot knows it's you." },
+  {
+    icon: Calendar,
+    title: "Mark availability",
+    desc: "Draw free windows in crayon on the wall calendar.",
+  },
+  {
+    icon: Users,
+    title: "Find overlap",
+    desc: "Flip through weeks and see when everyone is free.",
+  },
+];
 
-export function LandingSteps({ steps }: { steps: Step[] }) {
+export function LandingSteps() {
+  const steps = LANDING_STEPS;
   const reduced = useReducedMotion();
 
   return (

@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       data: {
         title: body.title,
         description: body.description,
+        phase: "scheduled",
         start: new Date(body.start),
         end: new Date(body.end),
         visibility: body.visibility,
@@ -42,8 +43,8 @@ export async function POST(request: NextRequest) {
     });
 
     const notifyTargets = await findUsersFreeDuring(
-      event.start,
-      event.end,
+      event.start!,
+      event.end!,
     );
 
     return NextResponse.json({ event, notifyTargets }, { status: 201 });

@@ -30,6 +30,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       data: {
         title: body.title ?? undefined,
         notes: body.notes === undefined ? undefined : body.notes,
+        url: body.url === undefined ? undefined : body.url,
+        checklist: body.checklist === undefined ? undefined : body.checklist,
         startsAt:
           body.startsAt === undefined
             ? undefined
@@ -37,6 +39,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
               ? new Date(body.startsAt)
               : null,
         sortOrder: body.sortOrder ?? undefined,
+        kind: body.kind ?? undefined,
+        location: body.location === undefined ? undefined : body.location,
       },
     });
 

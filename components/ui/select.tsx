@@ -37,11 +37,10 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "paper-sheet scroll-paper relative z-50 max-h-72 min-w-[8rem] overflow-y-auto p-1 text-[var(--paper-ink)] shadow-lg",
+        "paper-flat scroll-paper relative z-50 max-h-72 min-w-[8rem] overflow-y-auto p-1 font-sans text-[var(--paper-ink)] shadow-lg",
         position === "popper" && "translate-y-1",
         className,
       )}
-      style={{ "--paper-tilt": "0deg" } as React.CSSProperties}
       position={position}
       {...props}
     >

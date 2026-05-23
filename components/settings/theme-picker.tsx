@@ -1,13 +1,45 @@
 "use client";
 
+import { motion } from "motion/react";
 import { NavIndicator } from "@/components/motion/nav-indicator";
 import { THEME_OPTIONS, type AppTheme } from "@/lib/themes";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
 type ThemePickerProps = {
   value: AppTheme;
   onChange: (theme: AppTheme) => void;
 };
+
+function ThemeSwatch({
+  color,
+  index,
+}: {
+  color: string;
+  index: number;
+}) {
+  const reduced = useReducedMotion();
+  const className =
+    "h-6 w-6 shrink-0 rounded-sm border-2 border-[var(--crayon-stroke)]";
+
+  if (reduced) {
+    return (
+      <span className={className} style={{ backgroundColor: color }} />
+    );
+  }
+
+  return (
+    <motion.span
+      className={className}
+      style={{ backgroundColor: color }}
+      whileHover={{
+        scale: 1.15,
+        rotate: index % 2 === 0 ? 8 : -8,
+      }}
+      transition={{ type: "spring", stiffness: 420, damping: 18 }}
+    />
+  );
+}
 
 function ThemeCard({
   selected,
@@ -22,24 +54,13 @@ function ThemeCard({
   swatches: string[];
   onClick: () => void;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "paper-sheet relative w-full p-3 text-left transition-all duration-fast",
-        selected && "ring-0",
-      )}
-      style={{ "--paper-tilt": "0.4deg" } as React.CSSProperties}
-    >
+  const reduced = useReducedMotion();
+  const inner = (
+    <>
       {selected && <NavIndicator layoutId="settings-theme" />}
       <div className="relative z-10 flex gap-1.5">
         {swatches.map((color, i) => (
-          <span
-            key={i}
-            className="h-6 w-6 shrink-0 rounded-sm border-2 border-[var(--crayon-stroke)]"
-            style={{ backgroundColor: color }}
-          />
+          <ThemeSwatch key={i} color={color} index={i} />
         ))}
       </div>
       <p className="relative z-10 mt-2 font-display text-lg font-bold text-[var(--paper-ink)]">
@@ -48,7 +69,39 @@ function ThemeCard({
       <p className="relative z-10 text-sm text-[var(--paper-ink-muted)]">
         {description}
       </p>
-    </button>
+    </>
+  );
+
+  if (reduced) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          "paper-sheet relative w-full p-3 text-left transition-all duration-fast",
+          selected && "ring-0",
+        )}
+        style={{ "--paper-tilt": "0.4deg" } as React.CSSProperties}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={{ scale: 1.02, rotate: -0.5 }}
+      whileTap={{ scale: 0.98 }}
+      className={cn(
+        "paper-sheet relative w-full p-3 text-left",
+        selected && "ring-0",
+      )}
+      style={{ "--paper-tilt": "0.4deg" } as React.CSSProperties}
+    >
+      {inner}
+    </motion.button>
   );
 }
 

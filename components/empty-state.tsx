@@ -3,10 +3,17 @@
 import { motion } from "motion/react";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import { Calendar, Users } from "lucide-react";
+
+const EMPTY_STATE_ICONS = {
+  calendar: Calendar,
+  users: Users,
+} as const;
+
+export type EmptyStateIconName = keyof typeof EMPTY_STATE_ICONS;
 
 type EmptyStateProps = {
-  icon: LucideIcon;
+  iconName: EmptyStateIconName;
   title: string;
   description: string;
   action?: React.ReactNode;
@@ -14,16 +21,22 @@ type EmptyStateProps = {
 };
 
 export function EmptyState({
-  icon: Icon,
+  iconName,
   title,
   description,
   action,
   className,
 }: EmptyStateProps) {
   const reduced = useReducedMotion();
+  const Icon = EMPTY_STATE_ICONS[iconName];
 
   const iconEl = (
-    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-dashed border-[var(--ink-pencil)] bg-muted/30">
+    <div
+      className={cn(
+        "mb-4 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-dashed border-[var(--ink-pencil)] bg-muted/30",
+        !reduced && "animate-float-note",
+      )}
+    >
       <Icon className="h-6 w-6 text-muted-foreground" />
     </div>
   );

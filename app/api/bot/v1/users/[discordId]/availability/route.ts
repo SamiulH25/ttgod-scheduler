@@ -58,6 +58,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
       start: new Date(b.start),
       end: new Date(b.end),
       label: b.label,
+      status: b.status ?? "free",
+      recurrenceRule: b.recurrenceRule ?? undefined,
+      seriesId: b.seriesId ?? undefined,
     }));
 
     for (let i = 0; i < parsed.length; i++) {
@@ -86,6 +89,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
           start: b.start,
           end: b.end,
           label: b.label,
+          status: b.status,
+          recurrenceRule: b.recurrenceRule,
+          seriesId: b.seriesId,
         })),
       });
       return tx.availabilityBlock.findMany({

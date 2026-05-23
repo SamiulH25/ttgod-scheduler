@@ -48,6 +48,10 @@ export async function POST(request: NextRequest, { params }: Params) {
         notes: body.notes,
         startsAt: body.startsAt ? new Date(body.startsAt) : null,
         sortOrder,
+        ...(body.url !== undefined && { url: body.url }),
+        ...(body.checklist !== undefined && { checklist: body.checklist }),
+        ...(body.kind !== undefined && { kind: body.kind }),
+        ...(body.location !== undefined && { location: body.location }),
       },
     });
 

@@ -14,6 +14,7 @@ type CrayonBlockProps = {
   role?: string;
   tabIndex?: number;
   title?: string;
+  "data-block-id"?: string;
 };
 
 export function CrayonBlock({
@@ -26,12 +27,14 @@ export function CrayonBlock({
   role,
   tabIndex,
   title,
+  "data-block-id": dataBlockId,
 }: CrayonBlockProps) {
   return (
     <div
       role={role}
       tabIndex={tabIndex}
       title={title}
+      data-block-id={dataBlockId}
       onClick={onClick}
       className={cn(
         "absolute overflow-hidden rounded-sm text-[var(--crayon-fill-ink)]",

@@ -3,6 +3,7 @@
 import { PageTransition } from "@/components/motion/page-transition";
 import { MobileTopBar } from "@/components/layout/mobile-top-bar";
 import { SideRail } from "@/components/layout/side-rail";
+import { CommandPalette } from "@/components/command-palette";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -29,6 +30,8 @@ export function AppShell({
         userImage={userImage}
         pendingInvites={pendingInvites}
       />
+
+      <CommandPalette />
 
       <div className="flex min-h-screen flex-col lg:pl-[13rem]">
         <main className="flex min-h-0 flex-1 flex-col">

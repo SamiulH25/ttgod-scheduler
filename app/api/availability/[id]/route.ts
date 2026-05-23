@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { logActivity } from "@/lib/activity";
 import { requireSession } from "@/lib/auth";
 
 import { prisma } from "@/lib/db";
@@ -96,6 +97,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
                 label: body.label,
 
+                status: body.status ?? undefined,
+
+                lfgNote: body.lfgNote === undefined ? undefined : body.lfgNote,
+
+                recurrenceRule:
+
+                  body.recurrenceRule === undefined ? undefined : body.recurrenceRule,
+
+                seriesId: body.seriesId === undefined ? undefined : body.seriesId,
+
               },
 
             });
@@ -106,13 +117,42 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
             where: { id },
 
-            data: { start, end, label: body.label },
+            data: {
+
+              start,
+
+              end,
+
+              label: body.label,
+
+              status: body.status ?? undefined,
+
+              lfgNote: body.lfgNote === undefined ? undefined : body.lfgNote,
+
+              recurrenceRule:
+
+                body.recurrenceRule === undefined ? undefined : body.recurrenceRule,
+
+              seriesId: body.seriesId === undefined ? undefined : body.seriesId,
+
+            },
 
           });
 
 
 
-    return NextResponse.json({ block });
+    await logActivity({
+      type: "availability.updated",
+      actorId: user!.id,
+      entityType: "availability_block",
+      entityId: block.id,
+      metadata: { merged: overlapping.length > 0 },
+    });
+
+    return NextResponse.json({
+      block,
+      merged: overlapping.length > 0,
+    });
 
   } catch (err) {
 
@@ -151,6 +191,13 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
 
 
     await prisma.availabilityBlock.delete({ where: { id } });
+
+    await logActivity({
+      type: "availability.deleted",
+      actorId: user!.id,
+      entityType: "availability_block",
+      entityId: id,
+    });
 
     return NextResponse.json({ ok: true });
 
