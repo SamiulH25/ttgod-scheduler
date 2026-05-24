@@ -176,21 +176,17 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
 
     const { id } = await params;
 
-    const existing = await prisma.availabilityBlock.findFirst({
+    const deleted = await prisma.availabilityBlock.deleteMany({
 
       where: { id, userId: user!.id },
 
     });
 
-    if (!existing) {
+    if (deleted.count === 0) {
 
       return jsonError("Block not found", "NOT_FOUND", 404);
 
     }
-
-
-
-    await prisma.availabilityBlock.delete({ where: { id } });
 
     await logActivity({
       type: "availability.deleted",

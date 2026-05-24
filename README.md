@@ -157,7 +157,18 @@ Copy `.env.example` to `.env` and fill in:
 
 Users must sign in on the website at least once so their `discordId` is stored before the bot can access their schedule.
 
-### 4. Database
+### 4. Database (PostgreSQL required)
+
+The schema no longer supports SQLite. Your `.env` must use a **`postgresql://`** URL (not `file:./dev.db`).
+
+**With Docker Desktop:**
+
+```bash
+npm run db:dev      # starts Postgres on localhost:5432
+npm run db:migrate
+```
+
+**Without Docker (Windows):** install PostgreSQL locally — see **[docs/WINDOWS_DEV.md](docs/WINDOWS_DEV.md)**.
 
 ```bash
 npm run db:migrate
