@@ -4,6 +4,117 @@ A scheduling web app for sharing free time, creating events, and integrating wit
 
 **Design:** Dark-first playful gaming UI — squad calendar overlaps, hub dashboard, and overlap-to-event flow. _(Screenshot placeholders: add `docs/screenshots/` when capturing the landing, calendar, and dashboard.)_
 
+**GitHub:** https://github.com/SamiulH25/ttgod-scheduler
+
+---
+
+## Gitea setup — mirror this repo and run the site
+
+Use **GitHub** for the canonical repo and CI. Use **Gitea** on your VPS/homelab to mirror the code and run the live app (Docker) next to Gitea.
+
+### Step 1 — Mirror GitHub into Gitea
+
+1. Log in to your Gitea instance (example: `https://git.example.com`).
+2. Click **+** → **New Migration** (wording may be **Migrate Repository**).
+3. Choose **Git** or **GitHub**.
+4. **Clone URL:** `https://github.com/SamiulH25/ttgod-scheduler.git`
+5. **Auth (private GitHub repo):**
+   - Username: `SamiulH25`
+   - Password: a GitHub **Personal Access Token** with `repo` scope (not your GitHub password).
+6. Repository name: `ttgod-scheduler`
+7. Enable **This repository will be a mirror** (or **Mirror updates**) and set sync interval (e.g. every 8 hours).
+8. Run migration.
+
+After sync, your Gitea clone URL will look like: `https://git.example.com/YOUR_GITEA_USER/ttgod-scheduler.git`
+
+**No migration UI?** On your PC:
+
+```bash
+git clone https://github.com/SamiulH25/ttgod-scheduler.git
+cd ttgod-scheduler
+git remote add gitea https://git.example.com/YOUR_GITEA_USER/ttgod-scheduler.git
+git push gitea main
+```
+
+### Step 2 — Install Docker on the Gitea server
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin
+sudo usermod -aG docker $USER
+# log out and back in so docker group applies
+```
+
+### Step 3 — Deploy the app beside Gitea
+
+```bash
+sudo mkdir -p /opt/ttgod-scheduler
+sudo chown $USER:$USER /opt/ttgod-scheduler
+cd /opt/ttgod-scheduler
+
+# Pull from your Gitea mirror (replace URL with yours)
+git clone https://git.example.com/YOUR_GITEA_USER/ttgod-scheduler.git .
+
+cp .env.example .env
+nano .env
+```
+
+**Required in `.env` on the server:**
+
+| Variable | Example |
+|----------|---------|
+| `DATABASE_URL` | Set by `docker-compose.yml` default, or leave as compose provides |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `AUTH_URL` | `https://schedule.yourdomain.com` (public HTTPS URL of the app) |
+| `AUTH_DISCORD_ID` | From [Discord Developer Portal](https://discord.com/developers/applications) |
+| `AUTH_DISCORD_SECRET` | Same app → OAuth2 |
+| `BOT_API_SECRET` | Long random string for your Discord bot |
+| `NODE_ENV` | `production` |
+
+**Discord OAuth redirect** (same Discord app): add  
+`https://schedule.yourdomain.com/api/auth/callback/discord`
+
+Start the stack:
+
+```bash
+docker compose up -d --build
+curl -s http://127.0.0.1:3000/api/health
+```
+
+You should see `{"ok":true,"db":"connected",...}`.
+
+### Step 4 — HTTPS in front of the app
+
+Expose port **3000** only on localhost; put **Caddy** or **nginx** on your public domain.
+
+Example: `schedule.yourdomain.com` → reverse proxy to `http://127.0.0.1:3000`.
+
+See `docker/Caddyfile.example` in the repo. Uncomment the `caddy` service in `docker-compose.yml` if you use the included Caddy container.
+
+### Step 5 — Update the site after GitHub pushes
+
+When GitHub `main` updates, sync Gitea (mirror sync or `git pull` on the server), then:
+
+```bash
+cd /opt/ttgod-scheduler
+git pull
+docker compose up -d --build
+docker compose exec app npx prisma migrate deploy
+curl -fsS https://schedule.yourdomain.com/api/health
+```
+
+### Checklist before sharing with friends
+
+- [ ] Gitea mirror shows latest `main` from GitHub
+- [ ] `GET /api/health` OK on your public URL
+- [ ] Discord sign-in works (no “dev demo” form in production)
+- [ ] `.env` never committed to git
+- [ ] Postgres backups scheduled — see [docs/RUNBOOK.md](docs/RUNBOOK.md)
+
+**More detail:** [docs/GITEA_SETUP.md](docs/GITEA_SETUP.md) · [docs/DEPLOY.md](docs/DEPLOY.md) · [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md)
+
+---
+
 ## Stack
 
 - **Next.js 15** (App Router) + TypeScript

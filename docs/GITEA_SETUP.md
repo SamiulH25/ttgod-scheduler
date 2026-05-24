@@ -6,7 +6,8 @@ Use **GitHub as the source of truth** for code and CI. Use **Gitea** on your ser
 
 The project is pushed to GitHub (private recommended for a friends-only beta).
 
-- Clone: `git clone https://github.com/YOUR_USER/ttgod-scheduler.git`
+- Clone: `git clone https://github.com/SamiulH25/ttgod-scheduler.git`
+- **README on GitHub** has the full Gitea walkthrough at the top of the repo.
 - CI runs on every push to `main` / `master` (see `.github/workflows/ci.yml`).
 
 Do **not** commit `.env` or any tokens. Copy `.env.example` to `.env` on the server only.
@@ -27,7 +28,7 @@ Note the clone URL, e.g. `https://git.yourdomain.com/youruser/ttgod-scheduler.gi
 ### Option A — Gitea “Mirror” repository (easiest)
 
 1. In Gitea: **New Migration** (or **New Repository** → **Migrate Repository**).
-2. **GitHub** / **Git** URL: `https://github.com/YOUR_USER/ttgod-scheduler.git`
+2. **GitHub** / **Git** URL: `https://github.com/SamiulH25/ttgod-scheduler.git`
 3. For a **private** GitHub repo, use a **GitHub Personal Access Token** (classic, `repo` scope) as the password; username = your GitHub username.
 4. Enable **Mirror** / **Sync periodically** (e.g. every 8h or on push via webhook).
 5. Migrate.
@@ -37,7 +38,7 @@ Gitea will pull from GitHub on a schedule. Deploy from Gitea’s copy or still d
 ### Option B — Push mirror from your machine
 
 ```bash
-git clone https://github.com/YOUR_USER/ttgod-scheduler.git
+git clone https://github.com/SamiulH25/ttgod-scheduler.git
 cd ttgod-scheduler
 git remote add gitea https://git.yourdomain.com/youruser/ttgod-scheduler.git
 git push gitea main   # or master
