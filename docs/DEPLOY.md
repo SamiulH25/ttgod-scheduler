@@ -40,8 +40,11 @@ npm run dev
 ## Gitea + GitHub
 
 - **Recommended:** GitHub is the source of truth; enable mirroring in Gitea if you want a second remote.
+- Step-by-step Gitea mirror and on-server deploy: **[GITEA_SETUP.md](./GITEA_SETUP.md)**.
 - Run the same `.github/workflows/ci.yml` on Gitea Actions (duplicate workflow) or rely on GitHub CI before merge.
 - Deploy workflow (`deploy.yml`) pushes to `ghcr.io/<owner>/<repo>` and optionally SSHs to your VPS when `deploy_to_vps` is enabled.
+
+**GitHub repo:** https://github.com/SamiulH25/ttgod-scheduler
 
 ## GitHub Actions secrets (deploy)
 

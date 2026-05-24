@@ -248,6 +248,7 @@ Friends-beta deployment uses **Docker + PostgreSQL** on your own VPS (or homelab
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Backups, rollback, incidents |
 | [docs/TECH.md](docs/TECH.md) | Auth, rate limits, storage |
 | [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | Pre-flight before sharing URL |
+| [docs/GITEA_SETUP.md](docs/GITEA_SETUP.md) | Mirror from GitHub and run on your Gitea server |
 
 Quick start:
 
