@@ -9,7 +9,7 @@ export function SeasonBoardCollapsible({ currentUserId }: { currentUserId: strin
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-sm border border-dashed border-border/60">
+    <div className="rounded-sm border border-dashed border-paper-border/60">
       <button
         type="button"
         className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left font-display text-lg font-bold"
@@ -22,7 +22,7 @@ export function SeasonBoardCollapsible({ currentUserId }: { currentUserId: strin
         />
       </button>
       {open && (
-        <div className="border-t border-dashed border-border/60 px-2 pb-4">
+        <div className="border-t border-dashed border-paper-border/60 px-2 pb-4">
           <SeasonBoard currentUserId={currentUserId} />
         </div>
       )}

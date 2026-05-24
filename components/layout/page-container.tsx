@@ -20,6 +20,8 @@ export function PageContainer({
   className,
 }: PageContainerProps) {
   return (
-    <div className={cn(variantClasses[variant], className)}>{children}</div>
+    <div className={cn("app-page", variantClasses[variant], className)}>
+      {children}
+    </div>
   );
 }

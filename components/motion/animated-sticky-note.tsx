@@ -34,11 +34,11 @@ export function AnimatedStickyNote({
   highlight = false,
   layout = true,
 }: AnimatedStickyNoteProps) {
+  void tiltId;
   const reduced = useReducedMotion();
 
   const note = (
     <StickyNote
-      tiltId={tiltId}
       backgroundColor={backgroundColor}
       inkColor={inkColor}
       interactive={interactive}
@@ -63,7 +63,7 @@ export function AnimatedStickyNote({
       whileHover={
         interactive
           ? {
-              rotate: [0, -1.5, 1.5, 0],
+              scale: 1.02,
               transition: { duration: 0.35 },
             }
           : undefined

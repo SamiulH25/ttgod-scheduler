@@ -54,11 +54,11 @@ const DialogContent = React.forwardRef<
         {...props}
       >
         <motion.div
-          initial={reduced ? false : { opacity: 0, scale: 0.88, rotate: -4 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          initial={reduced ? false : { opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={springBouncy}
         >
-          <div className="paper-flat relative grid w-full gap-4 p-6">
+          <div className="paper-flat on-paper relative grid w-full gap-4 p-6">
             {children}
             <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-sm text-[var(--paper-ink-muted)] transition-opacity duration-fast hover:text-[var(--paper-ink)] focus:outline-none focus:ring-2 focus:ring-ring">
               <X className="h-5 w-5 stroke-[2.5px]" />
@@ -82,7 +82,10 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("font-display text-3xl font-bold leading-tight", className)}
+    className={cn(
+      "font-display text-3xl font-bold leading-tight text-[var(--paper-ink)]",
+      className,
+    )}
     {...props}
   />
 ));

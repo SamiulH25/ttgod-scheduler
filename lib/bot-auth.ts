@@ -1,6 +1,9 @@
 import { timingSafeEqual } from "crypto";
-import type { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api-response";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const BOT_RATE_LIMIT = 120;
 
 function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -11,7 +14,9 @@ function safeEqual(a: string, b: string): boolean {
   }
 }
 
-export function verifyBotAuth(request: Request): NextResponse | null {
+export async function verifyBotAuth(
+  request: Request,
+): Promise<NextResponse | null> {
   const secret = process.env.BOT_API_SECRET;
   if (!secret) {
     return jsonError("Bot API not configured", "BOT_API_DISABLED", 503);
@@ -25,6 +30,19 @@ export function verifyBotAuth(request: Request): NextResponse | null {
   const token = header.slice(7);
   if (!safeEqual(token, secret)) {
     return jsonError("Invalid API token", "UNAUTHORIZED", 401);
+  }
+
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const limited = await checkRateLimit(`bot:${ip}`, BOT_RATE_LIMIT);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded", code: "RATE_LIMITED" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfterSec) },
+      },
+    );
   }
 
   return null;

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 type PressableProps = {
   children: ReactNode;
   className?: string;
-  /** Bump rotation on hover (nav icons, cards) */
+  /** Subtle scale lift on hover (no rotation) */
   hoverWiggle?: boolean;
   /** Trigger a success wiggle when this value changes */
   successKey?: string | number | boolean;
@@ -30,7 +30,6 @@ export function Pressable({
   useEffect(() => {
     if (reduced || successKey === undefined) return;
     void controls.start({
-      rotate: [0, -4, 4, -2, 0],
       scale: [1, 1.04, 1],
       transition: { duration: 0.45 },
     });
@@ -47,7 +46,7 @@ export function Pressable({
       animate={controls}
       whileHover={
         hoverWiggle
-          ? { scale: 1.03, rotate: 2, transition: springSnappy }
+          ? { scale: 1.02, transition: springSnappy }
           : { scale: 1.02, y: -1, transition: springSnappy }
       }
       whileTap={{ scale: 0.96, transition: springSnappy }}

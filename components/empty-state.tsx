@@ -33,21 +33,20 @@ export function EmptyState({
   const iconEl = (
     <div
       className={cn(
-        "mb-4 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-dashed border-[var(--ink-pencil)] bg-muted/30",
+        "mb-4 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-dashed border-[var(--ink-pencil)] bg-[var(--paper-inset-bg)]",
         !reduced && "animate-float-note",
       )}
     >
-      <Icon className="h-6 w-6 text-muted-foreground" />
+      <Icon className="h-6 w-6 text-[var(--paper-ink-muted)]" />
     </div>
   );
 
   return (
     <div
       className={cn(
-        "paper-sheet tape-both tape-tl tape-tr flex flex-col items-center px-6 py-12 text-center",
+        "paper-sheet on-paper tape-both tape-tl tape-tr flex flex-col items-center px-6 py-12 text-center",
         className,
       )}
-      style={{ "--paper-tilt": "0.6deg" } as React.CSSProperties}
     >
       {reduced ? iconEl : (
         <motion.div

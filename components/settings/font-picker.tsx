@@ -28,12 +28,11 @@ export function FontPicker({ value, onChange }: FontPickerProps) {
               onClick={() => onChange(f.id)}
               {...(!reduced
                 ? {
-                    whileHover: { scale: 1.03, rotate: 1 },
+                    whileHover: { scale: 1.01 },
                     whileTap: { scale: 0.97 },
                   }
                 : {})}
-              className="paper-sheet relative p-3 text-left"
-              style={{ "--paper-tilt": "-0.5deg" } as React.CSSProperties}
+              className="nav-rail-item relative p-3 text-left"
             >
               {selected && <NavIndicator layoutId="settings-font" />}
               <p

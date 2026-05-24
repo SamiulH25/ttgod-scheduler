@@ -20,6 +20,7 @@ import { CopyPingButton } from "@/components/copy-ping-button";
 import { OverlapPosterButton } from "@/components/overlap-poster-button";
 import { createSoftHoldFromOverlap } from "@/components/soft-holds-panel";
 import { SoftHoldsManageDialog } from "@/components/soft-holds-manage-dialog";
+import { FindTimePanel } from "@/components/scheduling/find-time-panel";
 
 type OverlapSlot = {
   start: string;
@@ -100,7 +101,11 @@ export function DashboardBento({
                         {featured.count} available
                       </StatusBadge>
                       {featured.unicorn && (
-                        <StatusBadge variant="muted" className="gap-1">
+                        <StatusBadge
+                          variant="muted"
+                          className="gap-1"
+                          title="Everyone who posted availability overlaps in this window"
+                        >
                           <Sparkles className="size-3.5 text-amber-500" />
                           Unicorn
                         </StatusBadge>
@@ -144,6 +149,9 @@ export function DashboardBento({
                       Start campaign
                     </Link>
                   </Button>
+                  <p className="text-center text-xs text-muted-foreground sm:text-right">
+                    Need more options?
+                  </p>
                 </div>
               </div>
             ) : (
@@ -212,7 +220,6 @@ export function DashboardBento({
                   <li
                     key={event.id}
                     className="paper-sheet flex items-start gap-3 p-3"
-                    style={{ "--paper-tilt": `${(event.id.charCodeAt(0) % 5) - 2}deg` } as React.CSSProperties}
                   >
                     <UserAvatar
                       name={event.createdBy.name}
@@ -237,19 +244,25 @@ export function DashboardBento({
       </BentoTile>
 
       <BentoTile>
-        <Pressable hoverWiggle className="block h-full">
-        <Card tiltId="stat-invites" interactive className="h-full">
-          <CardContent className="flex h-full items-center gap-3 pt-6">
-            <Calendar className="h-9 w-9 text-muted-foreground" />
-            <div>
-              <PopIn delay={0.15}>
-              <p className="font-display text-4xl font-bold tabular-nums">{pendingInvites}</p>
-              </PopIn>
-              <p className="ink-label">Invites</p>
-            </div>
-          </CardContent>
-        </Card>
-        </Pressable>
+        <Link href="/events" className="block h-full">
+          <Pressable hoverWiggle className="block h-full">
+            <Card tiltId="stat-invites" interactive className="h-full">
+              <CardContent className="flex h-full items-center gap-3 pt-6">
+                <Calendar className="h-9 w-9 text-muted-foreground" />
+                <div>
+                  <PopIn delay={0.15}>
+                    <p className="font-display text-4xl font-bold tabular-nums">
+                      {pendingInvites}
+                    </p>
+                  </PopIn>
+                  <p className="ink-label">
+                    {pendingInvites === 1 ? "Invite waiting" : "Invites waiting"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Pressable>
+        </Link>
       </BentoTile>
 
       {overlaps.length > 1 && (
@@ -284,6 +297,17 @@ export function DashboardBento({
         </BentoTile>
       )}
     </BentoGrid>
+
+      <div className="space-y-2">
+        <h2 className="font-display text-lg font-bold">Find a time</h2>
+        <p className="text-sm text-muted-foreground">
+          Ranked squad windows for the next two weeks — hold, start a campaign, or copy a ping.
+        </p>
+        <FindTimePanel
+          defaultDurationMinutes={120}
+          defaultHorizon={featured ? "twoWeeks" : "twoWeeks"}
+        />
+      </div>
     </div>
   );
 }

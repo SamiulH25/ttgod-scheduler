@@ -194,6 +194,17 @@ export const preferencesSchema = z.object({
     .enum(["morning", "afternoon", "evening", "night", "flex"])
     .optional()
     .nullable(),
+  weatherCity: z.string().max(120).optional().nullable(),
+  weatherLatitude: z.number().min(-90).max(90).optional().nullable(),
+  weatherLongitude: z.number().min(-180).max(180).optional().nullable(),
+});
+
+export const geocodeQuerySchema = z.object({
+  q: z.string().min(2).max(80),
+});
+
+export const weatherWeekQuerySchema = z.object({
+  start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
 export const rangeQuerySchema = z.object({
@@ -267,6 +278,99 @@ export const itineraryBulkSchema = z.object({
       sortOrder: z.number().int().min(0).optional(),
     }),
   ),
+});
+
+export const eventResourceKindSchema = z.enum(["link", "note", "location"]);
+export type EventResourceKind = z.infer<typeof eventResourceKindSchema>;
+
+const httpUrlSchema = z
+  .string()
+  .max(2000)
+  .refine(
+    (v) => {
+      try {
+        const u = new URL(v);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Must be a valid http(s) URL" },
+  );
+
+function resourceFieldsRefine(
+  data: {
+    kind: z.infer<typeof eventResourceKindSchema>;
+    url?: string | null;
+    body?: string | null;
+    address?: string | null;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (data.kind === "link") {
+    if (!data.url?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "URL is required for links",
+        path: ["url"],
+      });
+    }
+  }
+  if (data.kind === "note") {
+    if (!data.body?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Note text is required",
+        path: ["body"],
+      });
+    }
+  }
+  if (data.kind === "location") {
+    if (!data.address?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Address is required for locations",
+        path: ["address"],
+      });
+    }
+  }
+}
+
+export const eventResourceCreateSchema = z
+  .object({
+    kind: eventResourceKindSchema,
+    title: z.string().min(1).max(120),
+    url: httpUrlSchema.optional().nullable(),
+    body: z.string().max(2000).optional().nullable(),
+    address: z.string().max(500).optional().nullable(),
+  })
+  .superRefine(resourceFieldsRefine);
+
+export const eventResourceUpdateSchema = z
+  .object({
+    kind: eventResourceKindSchema.optional(),
+    title: z.string().min(1).max(120).optional(),
+    url: httpUrlSchema.optional().nullable(),
+    body: z.string().max(2000).optional().nullable(),
+    address: z.string().max(500).optional().nullable(),
+    sortOrder: z.number().int().min(0).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.kind) {
+      resourceFieldsRefine(
+        {
+          kind: data.kind,
+          url: data.url,
+          body: data.body,
+          address: data.address,
+        },
+        ctx,
+      );
+    }
+  });
+
+export const eventResourceReorderSchema = z.object({
+  orderedIds: z.array(z.string()).min(1),
 });
 
 export const botParticipantsAddSchema = z.object({
@@ -368,6 +472,50 @@ export const weekCompareQuerySchema = z.object({
   weekAStart: isoDateTime,
   weekBStart: isoDateTime,
 });
+
+const MAX_FIND_SLOTS_RANGE_MS = 14 * 24 * 60 * 60 * 1000;
+
+export const findSlotsQuerySchema = z
+  .object({
+    from: isoDateTime,
+    to: isoDateTime,
+    durationMinutes: z.coerce.number().int().min(15).max(24 * 60),
+    eventId: z.string().min(1).optional(),
+    participantUserIds: z
+      .string()
+      .optional()
+      .transform((s) =>
+        s
+          ? s
+              .split(",")
+              .map((id) => id.trim())
+              .filter(Boolean)
+          : undefined,
+      ),
+    includeTentative: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
+  })
+  .superRefine((data, ctx) => {
+    const from = new Date(data.from);
+    const to = new Date(data.to);
+    if (to <= from) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "to must be after from",
+        path: ["to"],
+      });
+      return;
+    }
+    if (to.getTime() - from.getTime() > MAX_FIND_SLOTS_RANGE_MS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Range cannot exceed 14 days",
+        path: ["to"],
+      });
+    }
+  });
 
 export const eventRoleCreateSchema = z.object({
   name: z.string().min(1).max(120),

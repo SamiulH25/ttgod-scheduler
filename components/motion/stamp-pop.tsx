@@ -28,8 +28,8 @@ export function StampMotion({
     <motion.span
       key={animationKey}
       className={cn("inline-flex", className)}
-      initial={{ scale: 1, rotate: 0 }}
-      animate={{ scale: [1, 1.14, 0.97, 1], rotate: [0, -7, 5, 0] }}
+      initial={{ scale: 1 }}
+      animate={{ scale: [1, 1.14, 0.97, 1] }}
       transition={stampPopKeyframes}
     >
       {children}

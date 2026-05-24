@@ -24,7 +24,7 @@ export async function BotHealthCard() {
   }
 
   return (
-    <Card tiltId="bot-health" tape>
+    <Card tape>
       <CardHeader>
         <CardTitle className="font-display">Discord bot link</CardTitle>
         <CardDescription>API health for your separate bot service</CardDescription>

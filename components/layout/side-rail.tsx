@@ -2,30 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Calendar,
-  LayoutDashboard,
-  Settings,
-  Users,
-  CalendarDays,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { LogoMark } from "@/components/logo-mark";
 import { GuildSwitcher } from "@/components/guild-switcher";
-import { NavIcon } from "@/components/motion/nav-icon";
-import { NavIndicator } from "@/components/motion/nav-indicator";
-import { PopInPulse } from "@/components/motion/pop-in";
-import { Pressable } from "@/components/motion/pressable";
+import { navSections, settingsNavLink } from "@/components/layout/nav-config";
+import { NavLinkItem } from "@/components/layout/nav-link-item";
 import { UserAvatar } from "@/components/user-avatar";
-import { tiltFromId } from "@/lib/paper-tilt";
 import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/dashboard", label: "Hub", icon: LayoutDashboard },
-  { href: "/availability", label: "Calendar", icon: Calendar },
-  { href: "/events", label: "Campaigns", icon: CalendarDays, badgeKey: "events" as const },
-  { href: "/squad", label: "Team", icon: Users },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 type SideRailProps = {
   userName?: string | null;
@@ -39,84 +22,77 @@ export function SideRail({
   pendingInvites = 0,
 }: SideRailProps) {
   const pathname = usePathname();
+  const settingsActive = pathname === settingsNavLink.href;
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-[var(--z-rail)] hidden w-[13rem] flex-col border-r-2 border-dashed border-[var(--ink-pencil)]/40 bg-[var(--wall-plaster)] lg:flex"
+      className="fixed inset-y-0 left-0 z-[var(--z-rail)] hidden w-[15.5rem] flex-col lg:flex"
       aria-label="Main navigation"
     >
-      <div className="flex h-16 items-center border-b border-dashed border-border px-4 text-foreground">
-        <Pressable hoverWiggle className="inline-block">
-          <Link href="/dashboard" className="block transition-opacity hover:opacity-90">
-            <LogoMark />
+      <div className="nav-rail-panel on-paper flex h-full flex-col border-r-2 border-[var(--crayon-stroke)] bg-[var(--paper-cream)] text-[var(--paper-ink)] shadow-[4px_0_24px_oklch(0.2_0.02_50_/_0.12)]">
+        <div className="relative border-b-2 border-[var(--crayon-stroke)]/25 px-4 pb-4 pt-5">
+          <span
+            className="pointer-events-none absolute -right-1 top-3 h-10 w-5 bg-[var(--tape-beige)] shadow-sm"
+            aria-hidden
+          />
+          <Link
+            href="/dashboard"
+            className="relative block text-[var(--paper-ink)] transition-opacity hover:opacity-90"
+          >
+            <LogoMark className="text-[var(--paper-ink)]" />
           </Link>
-        </Pressable>
+          <p className="relative mt-1 font-sans text-[11px] leading-snug text-[var(--nav-section-label,var(--paper-ink-muted))]">
+            Squad calendar & campaigns
+          </p>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-4">
+          {navSections.map((section) => (
+            <div key={section.title}>
+              <p className="mb-2 px-1 font-display text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--nav-section-label,var(--paper-ink-muted))]">
+                {section.title}
+              </p>
+              <ul className="space-y-1.5">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <NavLinkItem
+                      link={link}
+                      active={pathname === link.href}
+                      pendingInvites={pendingInvites}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <div className="mt-auto space-y-0 border-t-2 border-[var(--crayon-stroke)]/15">
+          <GuildSwitcher variant="rail" />
+
+          <Link
+            href={settingsNavLink.href}
+            className={cn(
+              "nav-rail-item mx-3 mb-3 mt-2 flex items-center gap-3 p-3 transition-[box-shadow,border-color] duration-fast",
+              settingsActive && "nav-rail-item-active border-[var(--crayon-stroke)]",
+            )}
+          >
+            <UserAvatar name={userName} image={userImage} size="sm" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-display text-base font-bold text-[var(--paper-ink)]">
+                {userName ?? "Member"}
+              </span>
+              <span className="block truncate font-sans text-[11px] text-[var(--nav-label-muted)]">
+                Settings & profile
+              </span>
+            </span>
+            <ChevronRight
+              className="size-4 shrink-0 text-[var(--paper-ink-muted)]"
+              aria-hidden
+            />
+          </Link>
+        </div>
       </div>
-
-      <nav className="flex flex-1 flex-col gap-2 p-3">
-        {links.map((link) => {
-          const active = pathname === link.href;
-          const Icon = link.icon;
-          const showBadge =
-            link.badgeKey === "events" && pendingInvites > 0;
-
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "paper-sheet relative flex items-center gap-3 px-3 py-2.5 font-display text-lg font-bold transition-all duration-fast",
-                active
-                  ? "text-[var(--paper-ink)]"
-                  : "text-[var(--paper-ink-muted)] hover:text-[var(--paper-ink)]",
-              )}
-              style={
-                {
-                  "--paper-tilt": `${tiltFromId(link.href, 1.5)}deg`,
-                } as React.CSSProperties
-              }
-            >
-              {active && <NavIndicator />}
-              <NavIcon active={active}>
-                <Icon
-                  className={cn(
-                    "h-5 w-5 stroke-[2.25px]",
-                    active
-                      ? "text-[var(--paper-ink)]"
-                      : "text-[var(--paper-ink-muted)]",
-                  )}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </NavIcon>
-              <span className="relative z-10 truncate">{link.label}</span>
-              {showBadge && (
-                <PopInPulse className="relative z-10 ml-auto">
-                  <span
-                    className="font-display text-sm font-bold text-secondary"
-                    aria-label={`${pendingInvites} pending`}
-                  >
-                    {pendingInvites}
-                  </span>
-                </PopInPulse>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <GuildSwitcher />
-
-      <Link
-        href="/settings"
-        className="paper-sheet m-3 flex items-center gap-2 p-3 transition-opacity hover:opacity-90"
-        style={{ "--paper-tilt": "-1deg" } as React.CSSProperties}
-      >
-        <UserAvatar name={userName} image={userImage} size="sm" />
-        <span className="truncate font-display text-lg font-bold">
-          {userName ?? "Member"}
-        </span>
-      </Link>
     </aside>
   );
 }

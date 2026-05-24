@@ -12,6 +12,7 @@ Bot work excluded. Use **Keep / Simplify / Hide** to decide UI prominence.
 | Wall notes | Team page | — | Hub |
 | Mode poll / roles | Campaign detail | “More options” collapse | Default open |
 | Week A vs B | Host scheduling | — | — |
+| Find a time (2-week ranked) | Hub + host scheduling | See [HOST.md](./HOST.md) | — |
 | LFG note | Availability only | — | Overlap UI |
 | Attendance stamps | Post-event | — | Pre-event |
 | Polaroid recap | Archived + photos | — | — |

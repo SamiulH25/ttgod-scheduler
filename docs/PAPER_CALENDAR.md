@@ -34,10 +34,30 @@ TTGOD uses a shared **paper calendar** UI: cream paper, crayon blocks, ruled hou
 - **Events**: `lib/event-calendar-segments.ts` → multi-day segment positions.
 - **Agenda**: `lib/agenda-items.ts` → sorted list for one day.
 
+## Context menus
+
+- **Availability grid (desktop):** right-click **your** crayon block → Edit slot or Remove slot. Left-click still opens the edit dialog.
+- **Availability agenda (mobile):** long-press your solo row for the same menu.
+- **Campaign scheduling (host):** right-click a dashed **poll slot** on the grid → Remove slot. Right-click the **draft preview** → Clear preview.
+- Empty grid areas suppress the browser menu so right-click does not show default browser items over the paper.
+
 ## Deep links
 
 - `/availability?week=YYYY-MM-DD` — week containing that Monday-based week start
 - `/availability?day=YYYY-MM-DD` — mobile selected day + week
+
+## Canadian holidays
+
+- **Scope:** Federal public holidays in Canada (`date-holidays`, `CA` only in v1).
+- **UI:** `HolidayDayChip` in day column headers and mobile `CompactDayStrip`; `HolidayDayLayer` tints the full day column (availability + event time picker).
+- **Logic:** `lib/holidays/canada.ts`, `useWeekHolidays(weekStart)` — no API call.
+
+## Weather
+
+- **Location:** per-user city in Settings → Regional (`weatherCity` + lat/lon on `User`).
+- **API:** `GET /api/weather/week?start=YYYY-MM-DD` (Open-Meteo, server-cached). `GET /api/weather/geocode?q=` for city search.
+- **UI:** day column headers (`weather-day-chip` + hourly dialog), mobile `CompactDayStrip`, and small per-hour icons on the desktop week grid (`WeatherHourLayer` in availability + event time picker when location is set). AM/PM views only show icons for visible hours. Unconfigured users see a link to Settings in headers only.
+- **Units:** Fahrenheit in UI (`lib/weather/format-temp.ts`).
 
 ## Tokens
 

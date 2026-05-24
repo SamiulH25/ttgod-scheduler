@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addDays, addWeeks, format, isSameDay, parseISO, subWeeks } from "date-fns";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useWeekWeather } from "@/components/calendar/use-week-weather";
 import { MousePointer2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AgendaDayList } from "@/components/calendar/agenda-day-list";
@@ -71,6 +73,7 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
   const weekEnd = useMemo(() => getWeekEnd(weekStart), [weekStart]);
   const weekKey = format(weekStart, "yyyy-MM-dd");
   const weekRangeLabel = `${format(weekStart, "MMM d")} – ${format(addDays(weekEnd, -1), "MMM d, yyyy")}`;
+  const { state: weatherState } = useWeekWeather(weekStart);
 
   useEffect(() => {
     const weekParam = searchParams.get("week");
@@ -399,19 +402,37 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
     }
   }
 
+  const deleteBlock = useCallback(
+    async (blockId: string, options?: { closeDialog?: boolean }) => {
+      const res = await fetch(`/api/availability/${blockId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        toast.error("Failed to remove availability");
+        return false;
+      }
+      toast.success("Availability removed");
+      if (options?.closeDialog) {
+        setDialogOpen(false);
+        setSelectedBlock(null);
+      }
+      load();
+      return true;
+    },
+    [load],
+  );
+
   async function handleDelete() {
     if (!selectedBlock) return;
-    const res = await fetch(`/api/availability/${selectedBlock.id}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) {
-      toast.error("Failed to remove availability");
-      return;
-    }
-    toast.success("Availability removed");
-    setDialogOpen(false);
-    setSelectedBlock(null);
-    load();
+    await deleteBlock(selectedBlock.id, { closeDialog: true });
+  }
+
+  function handleSoloEdit(block: CalendarBlock) {
+    openEditDialog(block);
+  }
+
+  function handleSoloRemove(blockId: string) {
+    void deleteBlock(blockId);
   }
 
   return (
@@ -458,10 +479,22 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
         <span>
           <strong className="text-[var(--paper-ink)]">Drag</strong> to paint ·{" "}
           <strong className="text-[var(--paper-ink)]">Click</strong> yours to edit ·{" "}
+          <strong className="text-[var(--paper-ink)]">Right-click</strong> to remove ·{" "}
           <kbd className="rounded border px-1 text-[10px]">←</kbd>{" "}
           <kbd className="rounded border px-1 text-[10px]">→</kbd> week ·{" "}
           <kbd className="rounded border px-1 text-[10px]">T</kbd> today
         </span>
+        {weatherState.status === "unconfigured" && (
+          <span className="ml-auto font-sans text-xs">
+            <Link
+              href="/settings"
+              className="font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Add a city in Settings
+            </Link>{" "}
+            to see weather
+          </span>
+        )}
       </div>
 
       {!loading && (
@@ -503,6 +536,7 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
               selectedDay={mobileDay}
               onSelectDay={setMobileDay}
               blocks={blocks}
+              weatherState={weatherState}
             />
             {mobileOverlapSlot && (
               <div className="paper-sheet px-3 py-2">
@@ -521,6 +555,8 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
               blocks={blocks}
               currentUserId={currentUserId}
               onItemClick={handleAgendaItemClick}
+              onSoloEdit={handleSoloEdit}
+              onSoloRemove={handleSoloRemove}
               onPaintSlot={() => {
                 const slotStart = defaultSlotStart(mobileDay);
                 openAddDialog(
@@ -543,11 +579,14 @@ export function AvailabilityCalendar({ currentUserId }: AvailabilityCalendarProp
               focusedUserId={focusedUserId}
               highlightBlockId={highlightBlockId}
               onSoloClick={handleSoloClick}
+              onSoloEdit={handleSoloEdit}
+              onSoloRemove={handleSoloRemove}
               onOverlapClick={handleOverlapClick}
               onDragStart={handleDragStart}
               onDragMove={handleDragMove}
               onDragEnd={handleDragEnd}
               onOverlapBadgeClick={handleOverlapBadgeClick}
+              weatherState={weatherState}
             />
           </div>
         </>

@@ -16,14 +16,14 @@ const buttonVariants = cva(
         destructive:
           "border-[3px] border-[var(--crayon-stroke)] bg-destructive text-white",
         outline:
-          "border-[3px] border-[var(--crayon-stroke)] bg-[var(--paper-cream)] text-foreground hover:bg-muted",
+          "border-[3px] border-[var(--crayon-stroke)] bg-[var(--paper-cream)] text-[var(--paper-ink)] hover:bg-muted",
         secondary:
           "border-[3px] border-[var(--crayon-stroke)] bg-secondary text-secondary-foreground",
         ghost: "border-2 border-transparent hover:border-border hover:bg-muted/60",
         "ghost-accent": "border-2 border-transparent text-primary hover:bg-primary/10",
         link: "border-0 text-primary underline-offset-4 hover:underline",
         sticker:
-          "border-[3px] border-dashed border-[var(--ink-pencil)] bg-[var(--paper-cream)] text-foreground shadow-sm",
+          "border-[3px] border-dashed border-[var(--ink-pencil)] bg-[var(--paper-cream)] text-[var(--paper-ink)] shadow-sm",
       },
       size: {
         default: "h-10 px-5 py-2",

@@ -24,9 +24,9 @@ export function PageHeader({ title, subtitle, action, className }: PageHeaderPro
       <div className="space-y-2">
         {reduced ? (
           <>
-            <h1 className="font-display text-4xl font-bold tracking-tight">{title}</h1>
+            <h1 className="wall-title text-4xl font-bold tracking-tight">{title}</h1>
             {subtitle && (
-              <p className="max-w-xl font-sans text-lg font-medium text-muted-foreground">{subtitle}</p>
+              <p className="wall-subtitle max-w-xl text-lg">{subtitle}</p>
             )}
           </>
         ) : (
@@ -35,7 +35,7 @@ export function PageHeader({ title, subtitle, action, className }: PageHeaderPro
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="font-display text-4xl font-bold tracking-tight"
+              className="wall-title text-4xl font-bold tracking-tight"
             >
               {title}
             </motion.h1>
@@ -44,7 +44,7 @@ export function PageHeader({ title, subtitle, action, className }: PageHeaderPro
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: 0.05 }}
-                className="max-w-xl font-sans text-lg font-medium text-muted-foreground"
+                className="wall-subtitle max-w-xl text-lg"
               >
                 {subtitle}
               </motion.p>

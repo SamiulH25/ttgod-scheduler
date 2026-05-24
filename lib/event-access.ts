@@ -85,4 +85,10 @@ export const eventInclude = {
     },
   },
   expenses: { orderBy: { sortOrder: "asc" as const } },
+  resources: {
+    orderBy: { sortOrder: "asc" as const },
+    include: {
+      createdBy: { select: { id: true, name: true, image: true } },
+    },
+  },
 };

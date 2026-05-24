@@ -34,6 +34,7 @@ export type WeekTimeGridProps = {
   onGridPointerMove?: (e: React.PointerEvent) => void;
   onGridPointerUp?: (e: React.PointerEvent) => void;
   onGridPointerCancel?: (e: React.PointerEvent) => void;
+  onGridContextMenu?: (e: React.MouseEvent) => void;
   showTimeGutterLabel?: boolean;
   headerSize?: "default" | "compact";
   className?: string;
@@ -54,6 +55,7 @@ export function WeekTimeGrid({
   onGridPointerMove,
   onGridPointerUp,
   onGridPointerCancel,
+  onGridContextMenu,
   showTimeGutterLabel = true,
   headerSize = "default",
   className,
@@ -80,6 +82,7 @@ export function WeekTimeGrid({
           minWidth,
           ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : {}),
         }}
+        onContextMenu={onGridContextMenu}
       >
         <div
           className="paper-calendar-grid-header sticky top-0 z-30 grid border-b-2 border-[var(--crayon-stroke)] bg-[var(--paper-cream)]"

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { computeCombinedOwnBlock } from "@/lib/availability";
 import { handleApiError } from "@/lib/api-response";
 import { parseRangeParams } from "@/lib/dates";
+import { checkUserWriteRateLimit } from "@/lib/user-rate-limit";
 import { availabilityCreateSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
@@ -41,6 +42,13 @@ export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireSession();
     if (error) return error;
+
+    const rateLimited = await checkUserWriteRateLimit(
+      user!.id,
+      "availability-create",
+      60,
+    );
+    if (rateLimited) return rateLimited;
 
     const body = availabilityCreateSchema.parse(await request.json());
     const start = new Date(body.start);

@@ -21,7 +21,7 @@ export function NavIcon({
   return (
     <motion.span
       className="relative z-10 inline-flex shrink-0"
-      whileHover={{ rotate: 6, scale: 1.12 }}
+      whileHover={{ scale: 1.08 }}
       transition={springSnappy}
     >
       {children}

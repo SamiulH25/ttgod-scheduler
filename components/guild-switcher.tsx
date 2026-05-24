@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 
 type GuildRow = { id: string; name: string };
 
-export function GuildSwitcher() {
+type GuildSwitcherProps = {
+  variant?: "rail" | "default";
+};
+
+export function GuildSwitcher({ variant = "default" }: GuildSwitcherProps) {
   const [guilds, setGuilds] = useState<GuildRow[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -39,8 +43,14 @@ export function GuildSwitcher() {
   if (guilds.length <= 1) return null;
 
   return (
-    <div className="border-t border-dashed border-border/60 px-3 py-2">
-      <p className="mb-1 font-display text-xs font-bold text-[var(--paper-ink-muted)]">
+    <div
+      className={
+        variant === "rail"
+          ? "px-3 py-3"
+          : "border-t border-dashed border-border/60 px-3 py-2"
+      }
+    >
+      <p className="mb-2 px-1 font-display text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--nav-section-label,var(--paper-ink-muted))]">
         Guild
       </p>
       <div className="flex flex-col gap-1">
@@ -49,7 +59,7 @@ export function GuildSwitcher() {
             key={g.id}
             type="button"
             size="sm"
-            variant={g.id === activeId ? "default" : "ghost"}
+            variant={g.id === activeId ? "default" : "outline"}
             className="h-8 justify-start truncate font-display text-xs"
             onClick={() => void switchGuild(g.id)}
           >

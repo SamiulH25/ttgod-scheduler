@@ -5,11 +5,14 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { NavIndicator } from "@/components/motion/nav-indicator";
 import { FontPicker } from "@/components/settings/font-picker";
 import { ThemePicker } from "@/components/settings/theme-picker";
+import {
+  WeatherLocationPicker,
+  type WeatherLocationValue,
+} from "@/components/settings/weather-location-picker";
 import { UserAvatar } from "@/components/user-avatar";
 import { applyThemeToDocument } from "@/lib/apply-theme";
 import { fontFamilyFor, type AppFont } from "@/lib/fonts";
 import { type AppTheme } from "@/lib/themes";
-import { tiltFromId } from "@/lib/paper-tilt";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { useMemo, useState, useEffect } from "react";
@@ -87,6 +90,13 @@ export function SettingsForm({
     quietHours: string;
     energy: string;
   } | null>(null);
+  const [weatherLocation, setWeatherLocation] = useState<WeatherLocationValue>({
+    city: null,
+    latitude: null,
+    longitude: null,
+  });
+  const [baselineWeather, setBaselineWeather] =
+    useState<WeatherLocationValue | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +121,13 @@ export function SettingsForm({
             quietHours: d.quietHours ?? "",
             energy: d.energyPreference ?? "flex",
           });
+          const weather: WeatherLocationValue = {
+            city: d.weatherCity ?? null,
+            latitude: d.weatherLatitude ?? null,
+            longitude: d.weatherLongitude ?? null,
+          };
+          setWeatherLocation(weather);
+          setBaselineWeather(weather);
           setPrefsLoaded(true);
         }
       })
@@ -126,12 +143,18 @@ export function SettingsForm({
       (awayUntil !== baselineRhythm.awayUntil ||
         quietHours !== baselineRhythm.quietHours ||
         energyPreference !== baselineRhythm.energy);
+    const weatherDirty =
+      baselineWeather != null &&
+      (weatherLocation.city !== baselineWeather.city ||
+        weatherLocation.latitude !== baselineWeather.latitude ||
+        weatherLocation.longitude !== baselineWeather.longitude);
     return (
       timezone !== initialTimezone ||
       theme !== initialTheme ||
       font !== initialFont ||
       (baselineNotif !== null && notificationPrefs !== baselineNotif) ||
-      rhythmDirty
+      rhythmDirty ||
+      weatherDirty
     );
   }, [
     timezone,
@@ -146,6 +169,8 @@ export function SettingsForm({
     awayUntil,
     quietHours,
     energyPreference,
+    baselineWeather,
+    weatherLocation,
   ]);
 
   function applyFontPreview(next: AppFont) {
@@ -182,6 +207,9 @@ export function SettingsForm({
                 : null,
               quietHours: quietHours.trim() || null,
               energyPreference: energyPreference || null,
+              weatherCity: weatherLocation.city,
+              weatherLatitude: weatherLocation.latitude,
+              weatherLongitude: weatherLocation.longitude,
             }
           : {}),
       }),
@@ -202,6 +230,7 @@ export function SettingsForm({
       quietHours,
       energy: energyPreference,
     });
+    setBaselineWeather({ ...weatherLocation });
   }
 
   async function rotateCalendarToken() {
@@ -251,14 +280,11 @@ export function SettingsForm({
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "paper-sheet relative shrink-0 px-4 py-2.5 font-display text-lg font-bold transition-all duration-fast lg:w-full lg:text-left",
+                "nav-rail-item relative shrink-0 px-4 py-2.5 font-display text-lg font-bold transition-colors duration-fast lg:w-full lg:text-left",
                 active
                   ? "text-[var(--paper-ink)]"
                   : "text-[var(--paper-ink-muted)] hover:text-[var(--paper-ink)]",
               )}
-              style={
-                { "--paper-tilt": `${tiltFromId(t.id, 1.2)}deg` } as React.CSSProperties
-              }
             >
               {active && <NavIndicator layoutId="settings-tab" />}
               <span className="relative z-10">{t.label}</span>
@@ -270,7 +296,7 @@ export function SettingsForm({
       <div className="min-w-0 flex-1 space-y-6">
         <FadeIn key={tab}>
           {tab === "account" && (
-            <Card tiltId={`settings-${tab}`} tape>
+            <Card tape>
               <CardHeader>
                 <CardTitle>Account</CardTitle>
                 <CardDescription>
@@ -293,7 +319,7 @@ export function SettingsForm({
 
           {tab === "appearance" && (
             <div className="space-y-6">
-              <Card tiltId="settings-theme-card" tape>
+              <Card tape>
                 <CardHeader>
                   <CardTitle>Theme</CardTitle>
                   <CardDescription>
@@ -305,7 +331,7 @@ export function SettingsForm({
                   <ThemePicker value={theme} onChange={handleThemeChange} />
                 </CardContent>
               </Card>
-              <Card tiltId="settings-font-card" tape>
+              <Card tape>
                 <CardHeader>
                   <CardTitle>Font</CardTitle>
                   <CardDescription>
@@ -320,7 +346,7 @@ export function SettingsForm({
           )}
 
           {tab === "regional" && (
-            <Card tiltId={`settings-${tab}`} tape>
+            <Card tape>
               <CardHeader>
                 <CardTitle>Regional</CardTitle>
                 <CardDescription>
@@ -343,12 +369,16 @@ export function SettingsForm({
                     </SelectContent>
                   </Select>
                 </div>
+                <WeatherLocationPicker
+                  value={weatherLocation}
+                  onChange={setWeatherLocation}
+                />
               </CardContent>
             </Card>
           )}
 
           {tab === "rhythm" && (
-            <Card tiltId="settings-rhythm" tape>
+            <Card tape>
               <CardHeader>
                 <CardTitle>Rhythm & boundaries</CardTitle>
                 <CardDescription>
@@ -402,7 +432,7 @@ export function SettingsForm({
           )}
 
           {tab === "sync" && (
-            <Card tiltId="settings-sync" tape>
+            <Card tape>
               <CardHeader>
                 <CardTitle>Subscribe in Google / Apple Calendar</CardTitle>
                 <CardDescription>

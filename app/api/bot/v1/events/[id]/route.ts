@@ -8,7 +8,7 @@ import { eventInclude } from "@/lib/event-access";
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(_request);
+  const authError = await verifyBotAuth(_request);
   if (authError) return authError;
 
   try {

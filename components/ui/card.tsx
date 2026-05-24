@@ -1,31 +1,26 @@
 import * as React from "react";
-import { tiltFromId } from "@/lib/paper-tilt";
 import { cn } from "@/lib/utils";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   interactive?: boolean;
+  /** @deprecated Tilt disabled; kept for call-site compatibility */
   tiltId?: string;
   tape?: boolean;
 };
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, interactive, tiltId, tape = true, style, ...props }, ref) => {
-    const tilt = tiltId ? tiltFromId(tiltId) : 0;
+  ({ className, interactive, tape = true, style, tiltId, ...props }, ref) => {
+    void tiltId;
     return (
       <div
         ref={ref}
         className={cn(
-          "paper-sheet relative text-card-foreground",
+          "paper-sheet on-paper relative text-card-foreground",
           tape && "tape-both tape-tl tape-tr",
           interactive && "paper-sheet-interactive cursor-default",
           className,
         )}
-        style={
-          {
-            ...style,
-            "--paper-tilt": `${tilt}deg`,
-          } as React.CSSProperties
-        }
+        style={style}
         {...props}
       />
     );
@@ -44,7 +39,10 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("font-display text-2xl font-bold leading-tight", className)}
+      className={cn(
+        "font-display text-2xl font-bold leading-tight text-[var(--paper-ink)]",
+        className,
+      )}
       {...props}
     />
   ),

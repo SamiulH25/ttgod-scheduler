@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { logger } from "@/lib/logger";
 
 export function jsonError(
   error: string,
@@ -21,6 +22,13 @@ export function handleApiError(err: unknown): NextResponse {
     );
   }
 
-  console.error(err);
-  return jsonError("Internal server error", "INTERNAL_ERROR", 500);
+  const errId = crypto.randomUUID();
+  logger.error("API internal error", {
+    errId,
+    error: err instanceof Error ? err.message : String(err),
+  });
+  return NextResponse.json(
+    { error: "Internal server error", code: "INTERNAL_ERROR", errId },
+    { status: 500 },
+  );
 }

@@ -8,6 +8,7 @@ import { maybeAutoArchiveCompletedEvents } from "@/lib/event-archive-scheduler";
 import { eventListAccessWhere } from "@/lib/event-archive";
 import { eventInclude, eventListInclude } from "@/lib/event-access";
 import { loadScheduledEventRanges } from "@/lib/events-list-data";
+import { checkUserWriteRateLimit } from "@/lib/user-rate-limit";
 import { eventCreateSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
@@ -53,6 +54,13 @@ export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireSession();
     if (error) return error;
+
+    const rateLimited = await checkUserWriteRateLimit(
+      user!.id,
+      "event-create",
+      20,
+    );
+    if (rateLimited) return rateLimited;
 
     const body = eventCreateSchema.parse(await request.json());
     const participantIds = body.participantUserIds ?? [];

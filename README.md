@@ -8,7 +8,7 @@ A scheduling web app for sharing free time, creating events, and integrating wit
 
 - **Next.js 15** (App Router) + TypeScript
 - **Auth.js** (NextAuth v5) with Discord OAuth
-- **Prisma** + SQLite (local); switch `provider` + `DATABASE_URL` to PostgreSQL for production
+- **Prisma** + PostgreSQL (Docker Compose for local and production)
 - **Tailwind CSS** + shadcn-style UI components
 - **next-themes** for light / dark / system themes
 
@@ -26,7 +26,7 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | SQLite path, e.g. `file:./dev.db` |
+| `DATABASE_URL` | PostgreSQL URL (see `.env.example`) |
 | `AUTH_SECRET` | Random string — generate with `openssl rand -base64 32` |
 | `AUTH_DISCORD_ID` | Discord application OAuth2 client ID |
 | `AUTH_DISCORD_SECRET` | Discord application OAuth2 client secret |
@@ -238,12 +238,27 @@ Used by the web UI; requires an active Discord login session.
 
 ---
 
-## Production notes
+## Production
 
-1. Change Prisma `provider` to `postgresql` and set `DATABASE_URL`.
-2. Set `AUTH_URL` to your production domain.
-3. Use a strong `BOT_API_SECRET` and rotate periodically.
-4. Deploy to Vercel or similar; run `prisma migrate deploy` on deploy.
+Friends-beta deployment uses **Docker + PostgreSQL** on your own VPS (or homelab).
+
+| Doc | Contents |
+|-----|----------|
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Docker Compose, Discord OAuth, GitHub/Gitea CI |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Backups, rollback, incidents |
+| [docs/TECH.md](docs/TECH.md) | Auth, rate limits, storage |
+| [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | Pre-flight before sharing URL |
+
+Quick start:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d postgres  # local DB
+cp .env.example .env && npm run db:migrate && npm run dev
+# production:
+docker compose up -d --build
+```
+
+Health: `GET /api/health`
 
 ---
 

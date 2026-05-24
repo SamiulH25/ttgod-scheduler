@@ -32,23 +32,28 @@ export function CampaignMoreOptions({
   if (phase !== "interest" && phase !== "scheduling") return null;
 
   return (
-    <div className="rounded-sm border border-dashed border-border/60">
+    <div className="paper-panel paper-panel--inset on-paper overflow-hidden">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left font-display text-lg font-bold"
+        className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-[color-mix(in_oklch,var(--paper-cream)_88%,var(--primary)_12%)]"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
-        More options
-        <span className="font-sans text-xs font-normal text-muted-foreground">
-          mode poll, roles
+        <span className="font-display text-base font-bold text-[var(--paper-ink)]">
+          More options
+        </span>
+        <span className="font-sans text-xs font-medium text-[var(--paper-ink-muted)]">
+          poll mode · roles
         </span>
         <ChevronDown
-          className={cn("size-5 shrink-0 transition-transform", open && "rotate-180")}
+          className={cn(
+            "ml-auto size-5 shrink-0 text-[var(--paper-ink)] transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
       {open && (
-        <div className="space-y-4 border-t border-dashed border-border/60 p-4">
+        <div className="space-y-4 border-t border-dashed border-paper-border px-4 py-4">
           <EventOptionsPoll
             eventId={eventId}
             phase={phase}

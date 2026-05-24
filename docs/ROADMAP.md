@@ -41,5 +41,6 @@ High-level delivery tracker (see product plan elsewhere for full spec).
 ## Phase 6 — Ops
 
 - [x] This checklist + README / `.env.example` PostgreSQL note
+- [x] Docker + Postgres production path ([DEPLOY.md](./DEPLOY.md), GitHub CI, health endpoint)
 - [x] Default guild seed on sign-in + guild switcher (side rail)
 - [x] Playwright smoke (`e2e/smoke.spec.ts`)

@@ -1,13 +1,13 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { tiltFromId } from "@/lib/paper-tilt";
 import { cn } from "@/lib/utils";
 
 type StickyNoteProps = {
   children: ReactNode;
   className?: string;
-  tiltId: string;
+  /** @deprecated Tilt disabled */
+  tiltId?: string;
   backgroundColor: string;
   inkColor?: string;
   interactive?: boolean;
@@ -17,13 +17,11 @@ type StickyNoteProps = {
 export function StickyNote({
   children,
   className,
-  tiltId,
   backgroundColor,
   inkColor = "oklch(0.28 0.04 50)",
   interactive,
   onClick,
 }: StickyNoteProps) {
-  const tilt = tiltFromId(tiltId, 4);
   const Comp = onClick ? "button" : "div";
 
   return (
@@ -37,7 +35,6 @@ export function StickyNote({
       )}
       style={
         {
-          "--paper-tilt": `${tilt}deg`,
           "--sticky-bg": backgroundColor,
           "--sticky-ink": inkColor,
         } as CSSProperties

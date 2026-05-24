@@ -8,13 +8,20 @@ import { SquadHeatmapCard } from "@/components/squad-heatmap-card";
 import { WallNoteBanner } from "@/components/wall-note-banner";
 import { prisma } from "@/lib/db";
 import { defaultWeekRange } from "@/lib/dates";
+import { resolveActiveGuildId } from "@/lib/guild-context";
+import { endOfMonth, startOfMonth } from "date-fns";
+import { PaperPanel } from "@/components/layout/paper-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SquadPage() {
   const session = await getSession();
   const { from, to } = defaultWeekRange();
 
-  const [users, activities] = await Promise.all([
+  const guildId = await resolveActiveGuildId(session!.user!.id);
+  const monthStart = startOfMonth(new Date());
+  const monthEnd = endOfMonth(new Date());
+
+  const [users, activities, sessionsPinnedThisMonth] = await Promise.all([
     prisma.user.findMany({
       where: { discordId: { not: null }, id: { not: session!.user!.id } },
       select: {
@@ -35,6 +42,13 @@ export default async function SquadPage() {
         actor: { select: { id: true, name: true, image: true } },
       },
     }),
+    prisma.event.count({
+      where: {
+        phase: "scheduled",
+        start: { gte: monthStart, lte: monthEnd },
+        ...(guildId ? { guildId } : {}),
+      },
+    }),
   ]);
 
   return (
@@ -46,6 +60,17 @@ export default async function SquadPage() {
         />
 
         <WallNoteBanner />
+
+        <PaperPanel variant="flat">
+          <div className="flex items-center gap-3">
+            <p className="font-display text-3xl font-bold tabular-nums text-[var(--paper-ink)]">
+              {sessionsPinnedThisMonth}
+            </p>
+            <p className="text-sm font-medium text-[var(--paper-ink-muted)]">
+              Sessions pinned this month
+            </p>
+          </div>
+        </PaperPanel>
 
         <SquadHeatmapCard />
 

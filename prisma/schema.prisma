@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -24,6 +24,9 @@ model User {
   awayUntil            DateTime?
   quietHours           String?
   energyPreference     String?
+  weatherCity          String?
+  weatherLatitude      Float?
+  weatherLongitude     Float?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -36,6 +39,7 @@ model User {
   uploadedEventImages EventImage[]
   eventExpenses       EventExpense[]        @relation("ExpenseCreator")
   paidExpenses        EventExpense[]        @relation("ExpensePayer")
+  eventResources      EventResource[]       @relation("ResourceCreator")
   attendances         EventAttendance[]
   activities          Activity[]            @relation("ActivityActor")
   campaignTemplates   CampaignTemplate[]
@@ -186,6 +190,8 @@ model AvailabilityBlock {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, start])
+  @@index([userId, start, end])
+  @@index([start, end])
   @@index([seriesId])
 }
 
@@ -239,11 +245,13 @@ model Event {
   attendances  EventAttendance[]
   images       EventImage[]
   expenses     EventExpense[]
+  resources    EventResource[]
 
   @@index([createdById, start])
   @@index([phase])
   @@index([archivedAt])
   @@index([guildId])
+  @@index([guildId, phase])
   @@index([seasonId])
 }
 
@@ -350,6 +358,25 @@ model EventImage {
   @@index([eventId])
 }
 
+model EventResource {
+  id          String   @id @default(cuid())
+  eventId     String
+  kind        String
+  title       String
+  url         String?
+  body        String?
+  address     String?
+  sortOrder   Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdBy User  @relation("ResourceCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([eventId, sortOrder])
+}
+
 model EventPlanItem {
   id        String    @id @default(cuid())
   eventId   String
@@ -384,7 +411,19 @@ model EventParticipant {
   role  EventRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   @@unique([eventId, userId])
+  @@index([eventId, userId])
   @@index([eventId, status])
+}
+
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  bucketKey   String
+  windowStart DateTime
+  count       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([bucketKey, windowStart])
+  @@index([windowStart])
 }
 
 model EventAttendance {

@@ -2,19 +2,24 @@ import { auth } from "@/auth";
 
 import { DevSignInForm } from "@/components/dev-sign-in-form";
 
-import { DiscordSignInButton } from "@/components/discord-sign-in-button";
+import { AuthErrorBanner } from "@/components/auth-error-banner";
+
+import { LandingCalendarPreview } from "@/components/landing-calendar-preview";
 
 import { LandingHero } from "@/components/landing-hero";
+
+import { LandingSignIn } from "@/components/landing-sign-in";
 
 import { LandingSteps } from "@/components/landing-steps";
 
 import { LogoMark } from "@/components/logo-mark";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { AuthErrorBanner } from "@/components/auth-error-banner";
 import { isDiscordOAuthConfigured } from "@/lib/discord-oauth";
+
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
+
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "TTGOD Scheduler";
 
@@ -49,60 +54,66 @@ export default async function HomePage({
 
 
   const needsSignIn = params.signin === "required" || Boolean(params.callbackUrl);
+
   const discordConfigured = isDiscordOAuthConfigured();
+
+
 
   return (
 
-    <div className="relative min-h-screen bg-plaster-wall">
+    <div className="landing-page">
 
-      <header className="paper-sheet tape-both tape-tl tape-tr border-b-2 border-dashed border-border">
+      <div className="landing-page__inner">
 
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+        <header className="landing-header mx-auto max-w-6xl">
 
-          <LogoMark />
+          <LogoMark className="wall-title text-[var(--foreground)]" />
 
-        </div>
-
-      </header>
+        </header>
 
 
 
-      <main className="relative mx-auto max-w-6xl px-4 py-12 lg:py-20">
+        <main className="landing-main">
 
-        <LandingHero appName={appName}>
+          <div className="landing-hero-grid">
 
-          <>
+            <LandingHero appName={appName}>
 
-            {needsSignIn && (
-              <p
-                className="paper-sheet mt-4 px-3 py-2 font-sans text-base"
-                style={{ "--paper-tilt": "-0.5deg" } as Record<string, string>}
-              >
-                Sign in to peel open your dashboard.
-              </p>
-            )}
-            <AuthErrorBanner error={params.error} devAuthEnabled={devAuthEnabled} />
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+              {needsSignIn && (
 
-              <DiscordSignInButton
+                <p className="paper-callout on-paper text-sm font-medium">
+
+                  Sign in to open your dashboard and calendar.
+
+                </p>
+
+              )}
+
+              <LandingSignIn
+
                 callbackUrl={redirectTo}
+
                 configured={discordConfigured}
-                className="w-full sm:w-auto"
+
+              />
+
+              <AuthErrorBanner
+
+                error={params.error}
+
+                devAuthEnabled={devAuthEnabled}
+
               />
 
               {devAuthEnabled && (
 
-                <Card tiltId="demo-signin" className="w-full border-dashed sm:max-w-xs">
+                <details className="landing-dev-details on-paper">
 
-                  <CardHeader className="pb-2">
+                  <summary>Local developer sign-in</summary>
 
-                    <CardTitle className="text-xl">Local demo only</CardTitle>
+                  <div className="landing-dev-details__body">
 
-                  </CardHeader>
-
-                  <CardContent>
-
-                    <p className="mb-3 text-xs text-muted-foreground">
+                    <p className="mb-3 text-xs font-medium text-[var(--paper-ink-muted)]">
 
                       Skip Discord OAuth while developing locally.
 
@@ -110,28 +121,45 @@ export default async function HomePage({
 
                     <DevSignInForm redirectTo={redirectTo} />
 
-                  </CardContent>
+                  </div>
 
-                </Card>
+                </details>
 
               )}
 
+            </LandingHero>
+
+
+
+            <div className="landing-preview-wrap">
+
+              <LandingCalendarPreview />
+
             </div>
 
-          </>
-
-        </LandingHero>
+          </div>
 
 
 
-        <LandingSteps />
+          <hr className="landing-divider" aria-hidden />
 
-      </main>
+
+
+          <LandingSteps />
+
+        </main>
+
+        <footer className="landing-footer mx-auto max-w-6xl pb-8 text-center text-sm text-[var(--foreground)]/70">
+          <Link href="/privacy" className="underline hover:text-[var(--foreground)]">
+            Privacy
+          </Link>
+        </footer>
+
+      </div>
 
     </div>
 
   );
 
 }
-
 

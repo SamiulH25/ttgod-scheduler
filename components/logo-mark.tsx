@@ -9,7 +9,7 @@ export function LogoMark({ className }: { className?: string }) {
       )}
     >
       <span
-        className="inline-block h-4 w-8 -rotate-6 bg-[var(--tape-beige)] shadow-sm"
+        className="inline-block h-4 w-8 bg-[var(--tape-beige)] shadow-sm"
         aria-hidden
       />
       <span>TTGOD</span>

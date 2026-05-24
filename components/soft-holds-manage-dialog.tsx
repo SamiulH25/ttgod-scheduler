@@ -28,7 +28,7 @@ export function SoftHoldsManageDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg gap-0 p-0">
-        <DialogHeader className="border-b border-border/60 px-4 py-3">
+        <DialogHeader className="border-b border-paper-border/60 px-4 py-3">
           <DialogTitle className="font-display text-lg">Soft holds</DialogTitle>
           <p className="font-sans text-xs text-muted-foreground">
             Pencil a window before it becomes a campaign.

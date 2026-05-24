@@ -33,8 +33,8 @@ export function AppShell({
 
       <CommandPalette />
 
-      <div className="flex min-h-screen flex-col lg:pl-[13rem]">
-        <main className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-screen flex-col lg:pl-[15.5rem]">
+        <main className="app-main-canvas flex min-h-0 flex-1 flex-col">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

@@ -10,7 +10,7 @@ import { availabilityBulkSchema, rangeQuerySchema } from "@/lib/validations";
 type Params = { params: Promise<{ discordId: string }> };
 
 export async function GET(request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {

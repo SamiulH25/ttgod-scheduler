@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addWeeks, format, subWeeks } from "date-fns";
 import { EventDayColumn } from "@/components/calendar/event-day-column";
+import { HolidayDayChip } from "@/components/calendar/holiday-day-chip";
+import { useWeekHolidays } from "@/components/calendar/use-week-holidays";
+import { useWeekWeather } from "@/components/calendar/use-week-weather";
 import type { ProposalSegment } from "@/components/calendar/event-day-column";
 import { useWeekPointer } from "@/components/calendar/hooks/use-week-pointer";
 import { WeekTimeGrid } from "@/components/calendar/week-time-grid";
@@ -37,6 +40,9 @@ export type EventTimePickerProps = {
   onWeekStartChange?: (weekStart: Date) => void;
   className?: string;
   compactMobile?: boolean;
+  interactiveProposals?: boolean;
+  onRemoveProposal?: (proposalId: string) => void;
+  onClearPreview?: () => void;
 };
 
 export function EventTimePicker({
@@ -53,6 +59,9 @@ export function EventTimePicker({
   onWeekStartChange,
   className,
   compactMobile = true,
+  interactiveProposals = false,
+  onRemoveProposal,
+  onClearPreview,
 }: EventTimePickerProps) {
   const [internalWeekStart, setInternalWeekStart] = useState(() => {
     if (start) return getWeekStart(new Date(start));
@@ -76,6 +85,8 @@ export function EventTimePicker({
   );
   const columnHeight = viewport.heightPx;
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
+  const { state: weatherState } = useWeekWeather(weekStart);
+  const holidaysByDate = useWeekHolidays(weekStart);
 
   useEffect(() => {
     if (!start) return;
@@ -133,21 +144,39 @@ export function EventTimePicker({
       onGridPointerDown={handlePointerDown}
       onGridPointerMove={handlePointerMove}
       onGridPointerUp={handlePointerUp}
-      renderDayColumn={(day, vp) => (
-        <EventDayColumn
-          key={day.toISOString()}
-          day={day}
-          events={events}
-          proposals={proposals}
-          ghostBlocks={ghostBlocks}
-          viewport={vp}
-          start={start}
-          end={end}
-          dragRange={dragRange}
-          commitFlash={commitFlash}
-          conflictingEventIds={conflictingEventIds}
-        />
-      )}
+      onGridContextMenu={(e) => e.preventDefault()}
+      renderDayHeaderExtra={(day) => {
+        const dayKey = format(day, "yyyy-MM-dd");
+        const name = holidaysByDate[dayKey];
+        return name ? <HolidayDayChip name={name} /> : null;
+      }}
+      renderDayColumn={(day, vp) => {
+        const dayKey = format(day, "yyyy-MM-dd");
+        const hourWeather =
+          weatherState.status === "ready"
+            ? weatherState.weather.hoursByDate[dayKey]
+            : undefined;
+        return (
+          <EventDayColumn
+            key={day.toISOString()}
+            day={day}
+            events={events}
+            proposals={proposals}
+            ghostBlocks={ghostBlocks}
+            viewport={vp}
+            start={start}
+            end={end}
+            dragRange={dragRange}
+            commitFlash={commitFlash}
+            conflictingEventIds={conflictingEventIds}
+            hourWeather={hourWeather}
+            holidayName={holidaysByDate[dayKey]}
+            interactiveProposals={interactiveProposals}
+            onRemoveProposal={onRemoveProposal}
+            onClearPreview={previewOnly ? onClearPreview : undefined}
+          />
+        );
+      }}
     />
   );
 
@@ -156,6 +185,7 @@ export function EventTimePicker({
       <p className="text-xs text-muted-foreground">
         Drag across days for multi-day trips, or click a day for a 2-hour slot.
         {previewOnly && " Then confirm to add the slot."}
+        {interactiveProposals && " Right-click a poll slot or preview to remove or clear."}
       </p>
 
       <WeekToolbar

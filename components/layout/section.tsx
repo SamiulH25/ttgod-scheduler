@@ -21,12 +21,12 @@ export function Section({
       {(title || description) && (
         <div className="space-y-1">
           {title && (
-            <h2 className="font-display text-lg font-semibold tracking-tight">
+            <h2 className="wall-title text-lg font-semibold tracking-tight">
               {title}
             </h2>
           )}
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="wall-subtitle text-sm">{description}</p>
           )}
         </div>
       )}

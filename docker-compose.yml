@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ttgod
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ttgod_dev_password}
+      POSTGRES_DB: ttgod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttgod -d ttgod"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://ttgod:${POSTGRES_PASSWORD:-ttgod_dev_password}@postgres:5432/ttgod?schema=public
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_DISCORD_ID: ${AUTH_DISCORD_ID}
+      AUTH_DISCORD_SECRET: ${AUTH_DISCORD_SECRET}
+      BOT_API_SECRET: ${BOT_API_SECRET}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-TTGOD Scheduler}
+      UPLOAD_STORAGE: ${UPLOAD_STORAGE:-local}
+      RUNTIME_ENV_VALIDATION: "true"
+    volumes:
+      - upload_data:/app/data/uploads
+
+  # Optional: uncomment and set AUTH_URL to your domain for automatic HTTPS
+  # caddy:
+  #   image: caddy:2-alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./docker/Caddyfile:/etc/caddy/Caddyfile
+  #     - caddy_data:/data
+  #   depends_on:
+  #     - app
+
+volumes:
+  postgres_data:
+  upload_data:
+  # caddy_data:

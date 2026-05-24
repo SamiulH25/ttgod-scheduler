@@ -29,8 +29,16 @@ export async function GET() {
         awayUntil: true,
         quietHours: true,
         energyPreference: true,
+        weatherCity: true,
+        weatherLatitude: true,
+        weatherLongitude: true,
       },
     });
+
+    const weatherConfigured =
+      row?.weatherLatitude != null &&
+      row?.weatherLongitude != null &&
+      Boolean(row?.weatherCity);
 
     return NextResponse.json({
       timezone: user!.timezone,
@@ -42,6 +50,10 @@ export async function GET() {
       awayUntil: row?.awayUntil?.toISOString() ?? null,
       quietHours: row?.quietHours ?? null,
       energyPreference: row?.energyPreference ?? null,
+      weatherCity: row?.weatherCity ?? null,
+      weatherLatitude: row?.weatherLatitude ?? null,
+      weatherLongitude: row?.weatherLongitude ?? null,
+      weatherConfigured,
     });
   } catch (err) {
     return handleApiError(err);
@@ -69,6 +81,9 @@ export async function PATCH(request: NextRequest) {
       awayUntil?: Date | null;
       quietHours?: string | null;
       energyPreference?: string | null;
+      weatherCity?: string | null;
+      weatherLatitude?: number | null;
+      weatherLongitude?: number | null;
     } = {};
     if (body.timezone !== undefined) data.timezone = body.timezone;
     if (body.theme !== undefined) data.theme = body.theme;
@@ -87,6 +102,15 @@ export async function PATCH(request: NextRequest) {
     }
     if (body.energyPreference !== undefined) {
       data.energyPreference = body.energyPreference;
+    }
+    if (body.weatherCity !== undefined) {
+      data.weatherCity = body.weatherCity;
+    }
+    if (body.weatherLatitude !== undefined) {
+      data.weatherLatitude = body.weatherLatitude;
+    }
+    if (body.weatherLongitude !== undefined) {
+      data.weatherLongitude = body.weatherLongitude;
     }
 
     const updated =
@@ -111,6 +135,13 @@ export async function PATCH(request: NextRequest) {
       awayUntil: updated.awayUntil?.toISOString() ?? null,
       quietHours: updated.quietHours,
       energyPreference: updated.energyPreference,
+      weatherCity: updated.weatherCity,
+      weatherLatitude: updated.weatherLatitude,
+      weatherLongitude: updated.weatherLongitude,
+      weatherConfigured:
+        updated.weatherLatitude != null &&
+        updated.weatherLongitude != null &&
+        Boolean(updated.weatherCity),
     });
   } catch (err) {
     return handleApiError(err);

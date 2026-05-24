@@ -15,7 +15,7 @@ export function RecapPolaroidStrip({ images }: RecapPolaroidStripProps) {
         {images.map((img) => (
           <figure
             key={img.id}
-            className="tape-polaroid w-[140px] shrink-0 rotate-[-1.5deg] bg-[var(--polaroid-paper)] p-2 pb-8 shadow-md"
+            className="tape-polaroid w-[140px] shrink-0 bg-[var(--polaroid-paper)] p-2 pb-8 shadow-md"
           >
             <div className="relative aspect-square w-full overflow-hidden bg-black/5">
               {/* eslint-disable-next-line @next/next/no-img-element */}

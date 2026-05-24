@@ -53,7 +53,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md gap-0 p-0">
-        <DialogHeader className="border-b border-border/60 px-4 py-3">
+        <DialogHeader className="border-b border-paper-border/60 px-4 py-3">
           <DialogTitle className="font-display text-lg">Jump to…</DialogTitle>
           <p className="text-xs text-muted-foreground">Ctrl+K anywhere in the app</p>
         </DialogHeader>
@@ -70,7 +70,7 @@ export function CommandPalette() {
             className="font-sans"
           />
         </div>
-        <ul className="max-h-64 overflow-y-auto border-t border-border/40 px-2 pb-2">
+        <ul className="max-h-64 overflow-y-auto border-t border-paper-border/40 px-2 pb-2">
           {filtered.map((item) => (
             <li key={item.href}>
               <Link
@@ -94,7 +94,7 @@ export function CommandPalette() {
             <li className="px-3 py-4 text-sm text-muted-foreground">No matches</li>
           )}
         </ul>
-        <div className="border-t border-border/60 px-3 py-2 text-right">
+        <div className="border-t border-paper-border/60 px-3 py-2 text-right">
           <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
             Close
           </Button>

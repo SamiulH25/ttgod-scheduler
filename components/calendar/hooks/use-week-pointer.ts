@@ -82,6 +82,7 @@ export function useWeekPointer({
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
+    if (target.closest("[data-block-id]")) return;
     if (!target.closest("[data-day-column]")) return;
     const hit = resolvePointer(e.clientX, e.clientY);
     if (!hit) return;

@@ -1,0 +1,27 @@
+# Local development: Postgres + optional app. Run migrations against postgres from host.
+#
+#   docker compose -f docker-compose.dev.yml up -d postgres
+#   cp .env.example .env  # set DATABASE_URL to postgresql://ttgod:ttgod_dev_password@localhost:5432/ttgod
+#   npm run db:migrate
+#   npm run dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ttgod
+      POSTGRES_PASSWORD: ttgod_dev_password
+      POSTGRES_DB: ttgod
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttgod -d ttgod"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:

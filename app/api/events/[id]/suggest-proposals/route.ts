@@ -4,7 +4,10 @@ import { prisma } from "@/lib/db";
 import { getEventForUser } from "@/lib/event-access";
 import { handleApiError, jsonError } from "@/lib/api-response";
 import { parseRangeParams } from "@/lib/dates";
-import { suggestProposalSlots } from "@/lib/suggest-proposals";
+import {
+  findFullRosterSlots,
+  serializeRankedSlot,
+} from "@/lib/scheduling/find-slots";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       status: b.status,
     }));
 
-    const slots = suggestProposalSlots(
+    const ranked = findFullRosterSlots(
       userIds,
       slices,
       from,
@@ -79,10 +82,11 @@ export async function GET(request: NextRequest, { params }: Params) {
     );
 
     return NextResponse.json({
-      slots: slots.map((s) => ({
+      slots: ranked.map((s) => ({
         start: s.start.toISOString(),
         end: s.end.toISOString(),
       })),
+      ranked: ranked.map(serializeRankedSlot),
     });
   } catch (err) {
     return handleApiError(err);

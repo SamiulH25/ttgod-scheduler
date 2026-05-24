@@ -11,13 +11,7 @@ type ThemePickerProps = {
   onChange: (theme: AppTheme) => void;
 };
 
-function ThemeSwatch({
-  color,
-  index,
-}: {
-  color: string;
-  index: number;
-}) {
+function ThemeSwatch({ color }: { color: string }) {
   const reduced = useReducedMotion();
   const className =
     "h-6 w-6 shrink-0 rounded-sm border-2 border-[var(--crayon-stroke)]";
@@ -34,7 +28,6 @@ function ThemeSwatch({
       style={{ backgroundColor: color }}
       whileHover={{
         scale: 1.15,
-        rotate: index % 2 === 0 ? 8 : -8,
       }}
       transition={{ type: "spring", stiffness: 420, damping: 18 }}
     />
@@ -60,7 +53,7 @@ function ThemeCard({
       {selected && <NavIndicator layoutId="settings-theme" />}
       <div className="relative z-10 flex gap-1.5">
         {swatches.map((color, i) => (
-          <ThemeSwatch key={i} color={color} index={i} />
+          <ThemeSwatch key={i} color={color} />
         ))}
       </div>
       <p className="relative z-10 mt-2 font-display text-lg font-bold text-[var(--paper-ink)]">
@@ -78,10 +71,9 @@ function ThemeCard({
         type="button"
         onClick={onClick}
         className={cn(
-          "paper-sheet relative w-full p-3 text-left transition-all duration-fast",
+          "nav-rail-item relative w-full p-3 text-left transition-all duration-fast",
           selected && "ring-0",
         )}
-        style={{ "--paper-tilt": "0.4deg" } as React.CSSProperties}
       >
         {inner}
       </button>
@@ -92,13 +84,12 @@ function ThemeCard({
     <motion.button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: 1.02, rotate: -0.5 }}
+      whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       className={cn(
-        "paper-sheet relative w-full p-3 text-left",
+        "nav-rail-item relative w-full p-3 text-left",
         selected && "ring-0",
       )}
-      style={{ "--paper-tilt": "0.4deg" } as React.CSSProperties}
     >
       {inner}
     </motion.button>

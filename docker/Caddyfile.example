@@ -1,0 +1,4 @@
+# Example Caddyfile — copy to Caddyfile and set your domain.
+your.domain.com {
+  reverse_proxy app:3000
+}

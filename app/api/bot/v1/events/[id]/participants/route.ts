@@ -8,7 +8,7 @@ import { botParticipantsAddSchema } from "@/lib/validations";
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {

@@ -23,8 +23,8 @@ export function PopIn({ children, className, delay = 0, layout }: PopInProps) {
   return (
     <motion.div
       layout={layout}
-      initial={{ opacity: 0, scale: 0.85, rotate: -3 }}
-      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ ...popIn, delay }}
       className={cn(className)}
     >

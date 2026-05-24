@@ -8,7 +8,7 @@ import {
 import { freeUsersQuerySchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {

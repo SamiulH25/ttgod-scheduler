@@ -7,7 +7,7 @@ import { itineraryBulkSchema } from "@/lib/validations";
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(_request);
+  const authError = await verifyBotAuth(_request);
   if (authError) return authError;
 
   try {
@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {

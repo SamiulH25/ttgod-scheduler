@@ -113,7 +113,7 @@ export function AttendanceStamps({
           return (
             <div
               key={uid}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-paper-border bg-[var(--paper-inset-bg)] px-3 py-2"
             >
               <div className="flex items-center gap-2">
                 <UserAvatar

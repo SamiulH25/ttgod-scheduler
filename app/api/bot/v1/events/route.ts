@@ -8,7 +8,7 @@ import { eventInclude } from "@/lib/event-access";
 import { botEventCreateSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
-  const authError = verifyBotAuth(request);
+  const authError = await verifyBotAuth(request);
   if (authError) return authError;
 
   try {

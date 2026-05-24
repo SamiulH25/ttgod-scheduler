@@ -23,9 +23,13 @@ import {
   SchedulingConflictDialog,
   type ConflictUser,
 } from "@/components/scheduling-conflict-dialog";
+import {
+  RankedSlotList,
+  type RankedSlotRow,
+} from "@/components/scheduling/ranked-slot-list";
 import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
-import { motion } from "motion/react";
-import { subWeeks } from "date-fns";
+import { motion, useReducedMotion } from "motion/react";
+import { addDays, subWeeks } from "date-fns";
 
 export type SchedulingEvent = {
   id: string;
@@ -46,6 +50,8 @@ type CampaignSchedulingPanelProps = {
   currentUserId: string;
   isHost: boolean;
   calendarEvents: EventTimeRange[];
+  interestedCount?: number;
+  schedulingRosterCount?: number;
   onUpdated: (patch?: Partial<SchedulingEvent>) => void | Promise<void>;
 };
 
@@ -54,6 +60,8 @@ export function CampaignSchedulingPanel({
   currentUserId,
   isHost,
   calendarEvents,
+  interestedCount = 0,
+  schedulingRosterCount = 0,
   onUpdated,
 }: CampaignSchedulingPanelProps) {
   const [draftStart, setDraftStart] = useState("");
@@ -78,26 +86,36 @@ export function CampaignSchedulingPanel({
     }[];
   } | null>(null);
   const [compareBusy, setCompareBusy] = useState(false);
+  const [rankedSuggestions, setRankedSuggestions] = useState<RankedSlotRow[]>([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const myTopVote = event.proposalVotes.find(
     (v) => v.userId === currentUserId && v.rank === 1,
   );
 
-  const proposalSegments: ProposalSegment[] = useMemo(
-    () =>
-      event.proposals.map((p) => {
-        const firstChoices = p.votes.filter((v) => (v.rank ?? 1) === 1).length;
-        return {
-          id: p.id,
-          start: p.start,
-          end: p.end,
-          title: `${firstChoices} vote${firstChoices === 1 ? "" : "s"}`,
-          color: stickyColorForId(p.id).bg,
-          voteCount: firstChoices,
-        };
-      }),
-    [event.proposals],
-  );
+  const proposalSegments: ProposalSegment[] = useMemo(() => {
+    const poll = event.proposals.map((p) => {
+      const firstChoices = p.votes.filter((v) => (v.rank ?? 1) === 1).length;
+      return {
+        id: p.id,
+        start: p.start,
+        end: p.end,
+        title: `${firstChoices} vote${firstChoices === 1 ? "" : "s"}`,
+        color: stickyColorForId(p.id).bg,
+        voteCount: firstChoices,
+      };
+    });
+    const suggested = rankedSuggestions.slice(0, 3).map((s, i) => ({
+      id: `suggest-${i}-${s.start}`,
+      start: s.start,
+      end: s.end,
+      title: "Squad pick",
+      color: "oklch(0.55 0.12 145 / 0.35)",
+      voteCount: 0,
+    }));
+    return [...suggested, ...poll];
+  }, [event.proposals, rankedSuggestions]);
 
   const conflictingEventIds = useMemo(() => {
     if (!draftStart || !draftEnd) return new Set<string>();
@@ -182,10 +200,10 @@ export function CampaignSchedulingPanel({
     onUpdated();
   }
 
-  async function suggestFromSquad() {
+  async function loadSquadSuggestions() {
     setBusy(true);
     const from = weekStart;
-    const to = getWeekEnd(weekStart);
+    const to = addDays(weekStart, 14);
     const res = await fetch(
       `/api/events/${event.id}/suggest-proposals?durationMinutes=120&from=${from.toISOString()}&to=${to.toISOString()}`,
     );
@@ -195,14 +213,59 @@ export function CampaignSchedulingPanel({
       return;
     }
     const data = await res.json();
-    const slots = data.slots as { start: string; end: string }[];
-    if (!slots.length) {
-      toast.message("No common slots found for the squad this week");
+    const ranked = (
+      data.ranked ??
+      (data.slots as { start: string; end: string }[]).map((s) => ({
+        start: s.start,
+        end: s.end,
+        overlapCount: 0,
+        userIds: [],
+        score: 0,
+        reasons: [],
+      }))
+    ) as RankedSlotRow[];
+    if (!ranked.length) {
+      toast.message("No common slots found for the squad in the next 2 weeks");
+      setRankedSuggestions([]);
+      setSuggestOpen(false);
       return;
     }
-    const first = slots[0]!;
-    await addProposal(first.start, first.end);
-    toast.success("Added best squad overlap to the poll");
+    setRankedSuggestions(ranked);
+    setSuggestOpen(true);
+  }
+
+  async function pinRankedSlot(start: string, end: string) {
+    const startMs = new Date(start).getTime();
+    const endMs = new Date(end).getTime();
+    const existing = event.proposals.find(
+      (p) =>
+        new Date(p.start).getTime() === startMs &&
+        new Date(p.end).getTime() === endMs,
+    );
+    if (existing) {
+      await finalizePoll(existing.id);
+      return;
+    }
+    setBusy(true);
+    const res = await fetch(`/api/events/${event.id}/proposals`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start: new Date(start).toISOString(),
+        end: new Date(end).toISOString(),
+      }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error("Failed to add slot before pin");
+      return;
+    }
+    const data = await res.json();
+    const proposalId = data.proposal?.id as string | undefined;
+    await onUpdated(patchFromPhaseResponse(data.event ?? {}));
+    if (proposalId) {
+      await finalizePoll(proposalId);
+    }
   }
 
   function moveProposal(id: string, dir: -1 | 1) {
@@ -316,7 +379,9 @@ export function CampaignSchedulingPanel({
     const data = await res.json();
     toast.success("Campaign pinned to the calendar");
     setStampKey((k) => k + 1);
-    setFinalizeSealKey((k) => k + 1);
+    if (!reduceMotion) {
+      setFinalizeSealKey((k) => k + 1);
+    }
     await onUpdated(patchFromPhaseResponse(data.event));
   }
 
@@ -354,12 +419,34 @@ export function CampaignSchedulingPanel({
   }
 
   if (event.phase === "interest" && isHost) {
+    const canOpen = interestedCount > 0;
     return (
-      <Pressable successKey={pollOpenedKey}>
-        <Button type="button" onClick={openScheduling} disabled={busy}>
-          Open scheduling poll
-        </Button>
-      </Pressable>
+      <div className="paper-callout on-paper space-y-3">
+        <p className="text-sm text-[var(--paper-ink)]">
+          <span className="font-display font-bold">Next step:</span> After the
+          squad marks interest, open the poll to add time options. Squad-time
+          suggestions use{" "}
+          <span className="font-display font-bold">{schedulingRosterCount}</span>{" "}
+          member{schedulingRosterCount === 1 ? "" : "s"} (everyone who
+          isn&apos;t &quot;not interested&quot;).
+        </p>
+        <Pressable successKey={pollOpenedKey}>
+          <Button
+            type="button"
+            onClick={openScheduling}
+            disabled={busy || !canOpen}
+          >
+            Open scheduling poll
+            {interestedCount > 0 ? ` (${interestedCount} interested)` : ""}
+          </Button>
+        </Pressable>
+        {!canOpen && (
+          <p className="text-xs text-muted-foreground">
+            Wait for at least one interested response (or invite members) before
+            opening the poll.
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -371,7 +458,35 @@ export function CampaignSchedulingPanel({
     <div className="space-y-4">
       {isHost && (
         <>
-          <p className="paper-flat px-3 py-2 font-sans text-sm text-muted-foreground">
+          <div className="paper-sheet flex flex-wrap items-center justify-between gap-2 border-primary/20 bg-primary/5 px-3 py-2">
+            <p className="font-display text-sm font-bold">Compare weeks</p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={compareBusy}
+              onClick={() => void runWeekCompare()}
+            >
+              Run week A vs B
+            </Button>
+          </div>
+          {weekCompare && weekCompare.perUser.length > 0 && (
+            <div className="paper-callout on-paper max-h-48 overflow-y-auto font-sans text-xs">
+              <p className="mb-2 font-display font-bold">Free minutes · last week vs this</p>
+              <ul className="space-y-1">
+                {weekCompare.perUser.slice(0, 12).map((row) => (
+                  <li key={row.userId} className="flex justify-between gap-2">
+                    <span className="truncate font-mono text-[10px]">{row.userId.slice(0, 8)}…</span>
+                    <span className="tabular-nums">
+                      {row.freeMinutesA} → {row.freeMinutesB} ({row.deltaMinutes >= 0 ? "+" : ""}
+                      {row.deltaMinutes})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="paper-callout on-paper font-sans text-sm text-[var(--paper-ink-muted)]">
             <span className="font-display font-bold text-[var(--paper-ink)]">
               Scheduling confidence:
             </span>{" "}
@@ -379,7 +494,7 @@ export function CampaignSchedulingPanel({
           </p>
           <p className="text-sm text-muted-foreground">
             Drag on the calendar to preview a slot, then add it to the poll.
-            Faint blocks show squad availability.
+            Faint blocks show squad availability. Right-click poll slots to remove.
           </p>
           <EventTimePicker
             start={draftStart}
@@ -397,6 +512,12 @@ export function CampaignSchedulingPanel({
             ghostBlocks={ghostBlocks}
             conflictingEventIds={conflictingEventIds}
             compactMobile
+            interactiveProposals={isHost}
+            onRemoveProposal={(id) => void removeProposal(id)}
+            onClearPreview={() => {
+              setDraftStart("");
+              setDraftEnd("");
+            }}
           />
           {draftStart && draftEnd && (
             <div className="flex flex-wrap items-center gap-2">
@@ -439,35 +560,25 @@ export function CampaignSchedulingPanel({
               variant="secondary"
               size="sm"
               disabled={busy}
-              onClick={() => void suggestFromSquad()}
+              onClick={() => void loadSquadSuggestions()}
             >
               <Sparkles className="size-3.5" />
-              Suggest from squad
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={compareBusy}
-              onClick={() => void runWeekCompare()}
-            >
-              Week A vs B (guild)
+              Suggest squad times
             </Button>
           </div>
-          {weekCompare && weekCompare.perUser.length > 0 && (
-            <div className="paper-flat max-h-48 overflow-y-auto p-3 font-sans text-xs">
-              <p className="mb-2 font-display font-bold">Free minutes · last week vs this</p>
-              <ul className="space-y-1">
-                {weekCompare.perUser.slice(0, 12).map((row) => (
-                  <li key={row.userId} className="flex justify-between gap-2">
-                    <span className="truncate font-mono text-[10px]">{row.userId.slice(0, 8)}…</span>
-                    <span className="tabular-nums">
-                      {row.freeMinutesA} → {row.freeMinutesB} ({row.deltaMinutes >= 0 ? "+" : ""}
-                      {row.deltaMinutes})
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          {suggestOpen && rankedSuggestions.length > 0 && (
+            <div className="space-y-2">
+              <p className="font-display text-sm font-bold">Ranked squad windows (2 weeks)</p>
+              <RankedSlotList
+                slots={rankedSuggestions}
+                rosterSize={Math.max(
+                  0,
+                  ...rankedSuggestions.map((s) => s.overlapCount),
+                )}
+                busy={busy}
+                onAddToPoll={(start, end) => void addProposal(start, end)}
+                onPin={(start, end) => void pinRankedSlot(start, end)}
+              />
             </div>
           )}
         </>
@@ -507,7 +618,7 @@ export function CampaignSchedulingPanel({
               return (
                 <li
                   key={id}
-                  className="flex flex-wrap items-center gap-1 rounded-sm border border-border/50 bg-muted/20 px-2 py-1 text-sm"
+                  className="flex flex-wrap items-center gap-1 rounded-sm border border-paper-border bg-[var(--paper-inset-bg)] px-2 py-1 text-sm text-[var(--paper-ink)]"
                 >
                   <Button
                     type="button"
@@ -626,8 +737,8 @@ export function CampaignSchedulingPanel({
               key={finalizeSealKey}
               aria-hidden
               className="pointer-events-none absolute -right-1 -top-2 flex h-11 w-11 items-center justify-center rounded-full border-2 border-[oklch(0.42_0.12_25)] bg-[oklch(0.38_0.14_22)] text-[10px] font-bold uppercase leading-tight text-[oklch(0.92_0.02_95)] shadow-md wax-seal-burst"
-              initial={{ scale: 0.6, rotate: -18, opacity: 0 }}
-              animate={{ scale: 1, rotate: 8, opacity: 1 }}
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 420, damping: 18 }}
             >
               seal

@@ -20,7 +20,16 @@ import {
   yToMinutesInViewport,
   type SoloRect,
 } from "@/lib/calendar";
+import { HolidayDayLayer } from "@/components/calendar/holiday-day-layer";
+import { WeatherHourLayer } from "@/components/calendar/weather-hour-layer";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import type { AvailabilityViewFilter } from "@/lib/availability-stats";
+import type { HourWeather } from "@/lib/weather/types";
 import { cn } from "@/lib/utils";
 
 const DRAG_THRESHOLD_PX = 6;
@@ -59,7 +68,11 @@ type CalendarDayColumnProps = {
   focusedUserId: string | null;
   highlightBlockId?: string | null;
   showNowLine?: boolean;
+  hourWeather?: HourWeather[];
+  holidayName?: string;
   onSoloClick: (rect: SoloRect, e: React.MouseEvent) => void;
+  onSoloEdit?: (block: CalendarBlock) => void;
+  onSoloRemove?: (blockId: string) => void;
   onOverlapClick: (band: OverlapBand, day: Date, e: React.MouseEvent) => void;
   onDragStart: (day: Date, offsetY: number) => void;
   onDragMove: (offsetY: number) => void;
@@ -75,7 +88,11 @@ function CalendarDayColumnInner({
   focusedUserId,
   highlightBlockId,
   showNowLine,
+  hourWeather,
+  holidayName,
   onSoloClick,
+  onSoloEdit,
+  onSoloRemove,
   onOverlapClick,
   onDragStart,
   onDragMove,
@@ -112,6 +129,7 @@ function CalendarDayColumnInner({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
+    if ((e.target as HTMLElement).closest("[data-block-id]")) return;
     const rect = columnRef.current?.getBoundingClientRect();
     if (!rect) return;
 
@@ -184,7 +202,10 @@ function CalendarDayColumnInner({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onContextMenu={(e) => e.preventDefault()}
     >
+      <HolidayDayLayer holidayName={holidayName} />
+
       {hourLabels.map((hour) => (
         <div
           key={hour}
@@ -264,15 +285,17 @@ function CalendarDayColumnInner({
                 ? "paper-block--tentative"
                 : "";
 
-          return (
+          const crayon = (
             <CrayonBlock
-              key={`solo-${block.id}-${startMin}-${dayKey}`}
               data-block-id={block.id}
               color={color}
               variant="fill"
               role={isYours ? "button" : undefined}
               tabIndex={isYours ? 0 : undefined}
               onClick={isYours ? (e) => onSoloClick(rect, e) : undefined}
+              onContextMenu={
+                isYours ? (e) => e.stopPropagation() : undefined
+              }
               className={cn(
                 "left-2 right-2 z-[1] transition-opacity duration-fast",
                 statusPaper,
@@ -308,6 +331,31 @@ function CalendarDayColumnInner({
                 </div>
               )}
             </CrayonBlock>
+          );
+
+          if (isYours && onSoloEdit && onSoloRemove) {
+            return (
+              <ContextMenu key={`solo-${block.id}-${startMin}-${dayKey}`}>
+                <ContextMenuTrigger asChild>{crayon}</ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onSelect={() => onSoloEdit(block)}>
+                    Edit slot
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    variant="destructive"
+                    onSelect={() => onSoloRemove(block.id)}
+                  >
+                    Remove slot
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            );
+          }
+
+          return (
+            <div key={`solo-${block.id}-${startMin}-${dayKey}`} className="contents">
+              {crayon}
+            </div>
           );
         })}
 
@@ -397,6 +445,12 @@ function CalendarDayColumnInner({
           </span>
         </div>
       )}
+
+      <WeatherHourLayer
+        dayKey={dayKey}
+        viewport={viewport}
+        hours={hourWeather}
+      />
     </div>
   );
 }

@@ -50,6 +50,7 @@ import { stickyColorForId } from "@/lib/sticky-colors";
 import { ImageZoomButton } from "@/components/image-lightbox";
 import { cn } from "@/lib/utils";
 import { SeasonBoardCollapsible } from "@/components/season-board-collapsible";
+import { PendingInvitesBanner } from "@/components/campaign/pending-invites-banner";
 
 type SquadUser = {
   id: string;
@@ -510,8 +511,52 @@ export function EventsManager({
     setParticipantUserIds((prev) => [...new Set([...prev, ...ids])]);
   }
 
+  const pendingInviteEvents = useMemo(
+    () =>
+      events
+        .filter((ev) => {
+          const mine = ev.participants.find((p) => p.userId === currentUserId);
+          return ev.phase === "scheduled" && mine?.status === "pending";
+        })
+        .map((ev) => ({
+          id: ev.id,
+          title: ev.title,
+          phase: ev.phase,
+          start: ev.start,
+          end: ev.end,
+          proposals: ev.proposals,
+        })),
+    [events, currentUserId],
+  );
+
+  function handlePendingInviteRespond(
+    eventId: string,
+    status: "accepted" | "declined",
+  ) {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === eventId
+          ? {
+              ...e,
+              participants: upsertMyParticipation(
+                e.participants,
+                currentUserId,
+                status,
+              ),
+            }
+          : e,
+      ),
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {pendingInviteEvents.length > 0 && (
+        <PendingInvitesBanner
+          events={pendingInviteEvents}
+          onResponded={handlePendingInviteRespond}
+        />
+      )}
       <div className="flex flex-wrap items-center justify-end gap-2">
         {lastCreatedId && (
           <Button variant="outline" asChild>
@@ -664,7 +709,7 @@ export function EventsManager({
                     </div>
                   </div>
                 )}
-                <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                <div className="rounded-lg border border-paper-border/60 bg-muted/30 px-3 py-2">
                   {checkingFree ? (
                     <p className="text-xs text-muted-foreground">
                       Checking who&apos;s free…
@@ -1129,7 +1174,7 @@ export function EventsManager({
       </div>
 
       {!loading && archivedEvents.length > 0 && (
-        <div className="rounded-xl border border-border/60 bg-card/80 shadow-sm">
+        <div className="rounded-xl border border-paper-border/60 bg-card/80 shadow-sm">
           <button
             type="button"
             onClick={() => setArchiveOpen((o) => !o)}
@@ -1157,7 +1202,7 @@ export function EventsManager({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden border-t border-border/60"
+                className="overflow-hidden border-t border-paper-border/60"
               >
             <div className="px-4 pb-4 pt-2">
               <p className="mb-4 text-sm text-muted-foreground">

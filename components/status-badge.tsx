@@ -6,9 +6,9 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary/20 text-primary rotate-[-1deg]",
-        overlap: "bg-overlap/25 text-overlap-foreground rotate-[1deg]",
-        warning: "bg-secondary/20 text-secondary rotate-[-0.5deg]",
+        default: "bg-primary/20 text-primary",
+        overlap: "bg-overlap/25 text-overlap-foreground",
+        warning: "bg-secondary/20 text-secondary",
         muted: "border-dashed border-[var(--ink-pencil)] bg-muted/50 text-muted-foreground",
       },
     },
